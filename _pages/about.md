@@ -29,7 +29,7 @@ latest_posts:
 
 Hi 👋 ! My name is Daniele. I am PhD student in the [Machine Learning Group](https://mlg.unige.ch) at the University of Geneva, under the supervision of François Fleuret.  
 
-In a previous life, I have worked as a software engineer, and I have done machine learning at [Truelayer](https://truelayer.com/), and I have played in [Capture the Flag competitions](https://theromanxpl0it.github.io/).
+In a previous life, I have worked as a software engineer, I have done machine learning at [Truelayer](https://truelayer.com/), and I have played in [Capture the Flag competitions](https://theromanxpl0it.github.io/).
 
 I am also a triathlete, an avid reader, and a guitar player.
-You can follow me on [Twitter](https://twitter.com/DanielePaliotta) and check out my [Linkedin](https://www.linkedin.com/in/daniele-paliotta-455139a2/).
+You can follow me on [Twitter](https://twitter.com/DanielePaliotta), or find me on [Linkedin](https://www.linkedin.com/in/daniele-paliotta-455139a2/).
