@@ -1,9 +1,9 @@
 ---
-layout: profiles
-permalink: /people/
+layout: page
 title: people
-description: members of the lab or group
-nav: true
+permalink: /people/
+description: Write your description here. It will appear in your document head meta (for Google search results) and in your feed.xml site description.
+nav: false
 nav_order: 7
 
 profiles:
