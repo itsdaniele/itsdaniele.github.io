@@ -34,17 +34,6 @@ ninja.data = [{
             window.location.href = "/blog/2022/sentience/";
           
         },
-      },{id: "post-graphs-at-iclr-2021",
-        
-          title: "Graphs at ICLR 2021",
-        
-        description: "Geometric Deep Learning at ICLR 2021",
-        section: "Posts",
-        handler: () => {
-          
-            window.location.href = "/blog/2021/graphs-iclr2021/";
-          
-        },
       },{id: "post-teaching-myself-quantum-mechanics-part-one",
         
           title: "Teaching Myself Quantum Mechanics, Part one.",
