@@ -9,9 +9,9 @@ profile:
   align: right
   image: prof_pic.jpg
   image_circular: false # crops the image to make it circular
-  address: 
+  address:
 
-news: false  # includes a list of news items
+news: false # includes a list of news items
 selected_papers: true # includes a list of papers marked as "selected={true}"
 social: true # includes social icons at the bottom of the page
 
@@ -26,8 +26,7 @@ latest_posts:
   limit: 3 # leave blank to include all the blog posts
 ---
 
-
-Hi 👋 ! My name is Daniele. I am PhD student in the [Machine Learning Group](https://mlg.unige.ch) at the University of Geneva, under the supervision of François Fleuret.  
+Hi 👋 ! My name is Daniele. I am PhD student in the [Machine Learning Group](https://mlg.unige.ch) at the University of Geneva, under the supervision of François Fleuret.
 
 Currently, I am a Research Scientist intern at [Cartesia AI](https://cartesia.ai/) (San Francisco, USA, March 2025 – June 2025), working on multimodal and TTS foundation models (transformers, state space models, linear RNNs) with a strong focus on efficiency.
 
