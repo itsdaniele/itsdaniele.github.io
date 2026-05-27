@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 500" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Inter, sans-serif">
+  <defs>
+    <marker id="g-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L9,5 L0,10 z" fill="#737373"/>
+    </marker>
+  </defs>
+
+  <text x="40" y="36" font-size="14" font-weight="600" fill="#171717">From source to captured graph</text>
+  <text x="40" y="56" font-size="11" fill="#737373">The Python function is gone. What survives tracing is a pure data-flow DAG of tensor ops.</text>
+
+  <text x="40" y="98" font-size="10" letter-spacing="0.12em" fill="#737373">PYTHON SOURCE</text>
+  <rect x="40" y="110" width="320" height="140" rx="6" fill="#fafafa" stroke="#e5e5e5"/>
+  <g font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="12" fill="#171717">
+    <text x="58" y="138"><tspan fill="#0f766e">def</tspan> <tspan fill="#2563eb">fn</tspan>(x, y):</text>
+    <text x="58" y="160">&#160;&#160;&#160;&#160;z = x + y</text>
+    <text x="58" y="182">&#160;&#160;&#160;&#160;w = z * 2</text>
+    <text x="58" y="204">&#160;&#160;&#160;&#160;<tspan fill="#0f766e">return</tspan> w.sum()</text>
+  </g>
+
+  <text x="410" y="180" text-anchor="middle" font-size="11" letter-spacing="0.1em" fill="#ea580c">TRACE</text>
+  <line x1="380" y1="200" x2="450" y2="200" stroke="#ea580c" stroke-width="1.5" marker-end="url(#g-ink)"/>
+  <text x="410" y="222" text-anchor="middle" font-size="10" fill="#737373" font-style="italic">walk bytecode</text>
+  <text x="410" y="236" text-anchor="middle" font-size="10" fill="#737373" font-style="italic">record tensor ops</text>
+
+  <text x="490" y="98" font-size="10" letter-spacing="0.12em" fill="#737373">CAPTURED GRAPH</text>
+  <rect x="490" y="110" width="410" height="370" rx="6" fill="#fafafa" stroke="#e5e5e5"/>
+
+  <rect x="600" y="138" width="64" height="26" rx="13" fill="#fff" stroke="#0f766e"/>
+  <text x="632" y="155" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#0f766e">x</text>
+  <rect x="720" y="138" width="64" height="26" rx="13" fill="#fff" stroke="#0f766e"/>
+  <text x="752" y="155" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#0f766e">y</text>
+  <text x="572" y="156" text-anchor="end" font-size="9" letter-spacing="0.08em" fill="#737373">PLACEHOLDER</text>
+
+  <line x1="632" y1="164" x2="660" y2="204" stroke="#737373" stroke-width="1" marker-end="url(#g-ink)"/>
+  <line x1="752" y1="164" x2="724" y2="204" stroke="#737373" stroke-width="1" marker-end="url(#g-ink)"/>
+  <rect x="620" y="210" width="144" height="30" rx="6" fill="#fff" stroke="#ea580c"/>
+  <text x="692" y="229" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#171717">add_0 = torch.add</text>
+
+  <line x1="692" y1="240" x2="692" y2="278" stroke="#737373" stroke-width="1" marker-end="url(#g-ink)"/>
+  <rect x="620" y="282" width="144" height="30" rx="6" fill="#fff" stroke="#ea580c"/>
+  <text x="692" y="301" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#171717">mul_0 = torch.mul</text>
+
+  <rect x="800" y="282" width="46" height="30" rx="6" fill="#fff" stroke="#2563eb" stroke-dasharray="3 3"/>
+  <text x="823" y="301" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#2563eb">2</text>
+  <text x="857" y="300" font-size="9" letter-spacing="0.08em" fill="#2563eb">CONST</text>
+  <line x1="800" y1="297" x2="766" y2="297" stroke="#2563eb" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#g-ink)"/>
+
+  <line x1="692" y1="312" x2="692" y2="350" stroke="#737373" stroke-width="1" marker-end="url(#g-ink)"/>
+  <rect x="620" y="354" width="144" height="30" rx="6" fill="#fff" stroke="#ea580c"/>
+  <text x="692" y="373" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#171717">sum_0 = .sum()</text>
+
+  <line x1="692" y1="384" x2="692" y2="420" stroke="#737373" stroke-width="1" marker-end="url(#g-ink)"/>
+  <rect x="648" y="424" width="88" height="28" rx="14" fill="#171717"/>
+  <text x="692" y="442" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#fff">output</text>
+
+  <g transform="translate(40, 290)">
+    <text x="0" y="0" font-size="10" letter-spacing="0.12em" fill="#737373">WHAT'S GONE</text>
+    <text x="0" y="22" font-size="11" fill="#171717">&#8226; function name (<tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#737373">fn</tspan>) and arg names dissolve into positional placeholders</text>
+    <text x="0" y="42" font-size="11" fill="#171717">&#8226; local variables (<tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#737373">z</tspan>, <tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#737373">w</tspan>) become anonymous edges</text>
+    <text x="0" y="62" font-size="11" fill="#171717">&#8226; Python constants (<tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#2563eb">2</tspan>) are inlined as <tspan font-style="italic">specialized</tspan> arguments</text>
+    <text x="0" y="82" font-size="11" fill="#171717">&#8226; <tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#737373">+</tspan> and <tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#737373">.sum()</tspan> normalize to <tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#171717">torch.add</tspan>, <tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#171717">torch.mul</tspan>, etc.</text>
+  </g>
+</svg>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 300" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Inter, sans-serif">
+  <defs>
+    <marker id="p-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L9,5 L0,10 z" fill="#737373"/>
+    </marker>
+    <marker id="p-warm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L9,5 L0,10 z" fill="#ea580c"/>
+    </marker>
+  </defs>
+
+  <text x="40" y="36" font-size="14" font-weight="600" fill="#171717">The pipeline</text>
+  <text x="40" y="56" font-size="11" fill="#737373">First call runs every stage. Subsequent calls with the same input signature skip straight to EXECUTE.</text>
+
+  <text x="40" y="172" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="12" fill="#171717">fn(x, y)</text>
+  <line x1="98" y1="168" x2="118" y2="168" stroke="#737373" stroke-width="1.5" marker-end="url(#p-ink)"/>
+
+  <rect x="120" y="138" width="130" height="60" rx="6" fill="#fafafa" stroke="#e5e5e5"/>
+  <text x="185" y="166" text-anchor="middle" font-size="12" font-weight="600" letter-spacing="0.08em" fill="#171717">TRACE</text>
+  <text x="185" y="184" text-anchor="middle" font-size="10" fill="#737373">walk bytecode</text>
+  <line x1="250" y1="168" x2="266" y2="168" stroke="#737373" stroke-width="1.5" marker-end="url(#p-ink)"/>
+
+  <rect x="266" y="138" width="130" height="60" rx="6" fill="#fafafa" stroke="#e5e5e5"/>
+  <text x="331" y="166" text-anchor="middle" font-size="12" font-weight="600" letter-spacing="0.08em" fill="#171717">COMPILE</text>
+  <text x="331" y="184" text-anchor="middle" font-size="10" fill="#737373">graph &#8594; callable</text>
+  <line x1="396" y1="168" x2="412" y2="168" stroke="#737373" stroke-width="1.5" marker-end="url(#p-ink)"/>
+
+  <rect x="412" y="138" width="130" height="60" rx="6" fill="#fafafa" stroke="#e5e5e5"/>
+  <text x="477" y="166" text-anchor="middle" font-size="12" font-weight="600" letter-spacing="0.08em" fill="#171717">GUARD</text>
+  <text x="477" y="184" text-anchor="middle" font-size="10" fill="#737373">snapshot inputs</text>
+  <line x1="542" y1="168" x2="558" y2="168" stroke="#737373" stroke-width="1.5" marker-end="url(#p-ink)"/>
+
+  <rect x="558" y="138" width="130" height="60" rx="6" fill="#fafafa" stroke="#e5e5e5"/>
+  <text x="623" y="166" text-anchor="middle" font-size="12" font-weight="600" letter-spacing="0.08em" fill="#171717">CACHE</text>
+  <text x="623" y="184" text-anchor="middle" font-size="10" fill="#737373">append (guards, fn)</text>
+  <line x1="688" y1="168" x2="704" y2="168" stroke="#737373" stroke-width="1.5" marker-end="url(#p-ink)"/>
+
+  <rect x="704" y="138" width="130" height="60" rx="6" fill="#fafafa" stroke="#e5e5e5"/>
+  <text x="769" y="166" text-anchor="middle" font-size="12" font-weight="600" letter-spacing="0.08em" fill="#171717">EXECUTE</text>
+  <text x="769" y="184" text-anchor="middle" font-size="10" fill="#737373">run compiled fn</text>
+
+  <line x1="834" y1="168" x2="858" y2="168" stroke="#737373" stroke-width="1.5" marker-end="url(#p-ink)"/>
+  <text x="864" y="172" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="12" fill="#171717">result</text>
+
+  <path d="M 110 138 C 110 60, 770 60, 770 134" fill="none" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#p-warm)"/>
+  <text x="440" y="68" text-anchor="middle" font-size="11" font-weight="600" letter-spacing="0.06em" fill="#ea580c">CACHE HIT &#8212; SKIP TO EXECUTE</text>
+
+  <line x1="120" y1="240" x2="138" y2="240" stroke="#737373" stroke-width="1.5"/>
+  <text x="146" y="244" font-size="10" fill="#737373">first call: every stage runs (milliseconds)</text>
+  <line x1="120" y1="260" x2="138" y2="260" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <text x="146" y="264" font-size="10" fill="#ea580c">subsequent calls (matching guards): jump to EXECUTE (microseconds)</text>
+</svg>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 480" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Inter, sans-serif">
+  <defs>
+    <marker id="c-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L9,5 L0,10 z" fill="#737373"/>
+    </marker>
+  </defs>
+
+  <text x="40" y="36" font-size="14" font-weight="600" fill="#171717">Scanning the cache</text>
+  <text x="40" y="56" font-size="11" fill="#737373">Each cache entry stores a guard set and a compiled function. The scan is linear; the first entry whose guards all pass wins.</text>
+
+  <text x="60" y="96" font-size="10" letter-spacing="0.12em" fill="#737373">INCOMING CALL</text>
+  <rect x="60" y="106" width="280" height="36" rx="6" fill="#ffffff" stroke="#171717"/>
+  <text x="74" y="129" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="12" fill="#171717">fn(a, b)  <tspan fill="#737373"># shape (5, 6)</tspan></text>
+
+  <line x1="200" y1="148" x2="200" y2="172" stroke="#737373" stroke-width="1.5" marker-end="url(#c-ink)"/>
+
+  <text x="60" y="172" font-size="10" letter-spacing="0.12em" fill="#737373">CACHE</text>
+  <rect x="60" y="184" width="820" height="260" rx="6" fill="#fafafa" stroke="#e5e5e5"/>
+
+  <g>
+    <text x="92" y="222" font-size="14" font-weight="600" fill="#737373">#1</text>
+    <text x="140" y="216" font-size="10" letter-spacing="0.1em" fill="#737373">GUARDS</text>
+    <text x="140" y="234" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#171717">args[0].shape == (3, 4)</text>
+    <text x="140" y="250" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#171717">args[1].shape == (3, 4)</text>
+
+    <rect x="540" y="216" width="170" height="32" rx="6" fill="#ffffff" stroke="#e5e5e5"/>
+    <text x="625" y="237" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#171717">compiled_fn_v1</text>
+
+    <text x="740" y="237" font-size="11" font-weight="600" letter-spacing="0.06em" fill="#b45309">&#10007; MISS</text>
+  </g>
+
+  <line x1="80" y1="268" x2="860" y2="268" stroke="#e5e5e5" stroke-width="1"/>
+
+  <rect x="60" y="270" width="820" height="84" fill="#f0fdf4"/>
+  <rect x="60" y="270" width="4" height="84" fill="#15803d"/>
+  <g>
+    <text x="92" y="310" font-size="14" font-weight="600" fill="#15803d">#2</text>
+    <text x="140" y="304" font-size="10" letter-spacing="0.1em" fill="#15803d">GUARDS</text>
+    <text x="140" y="322" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#171717">args[0].shape == (5, 6)</text>
+    <text x="140" y="338" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#171717">args[1].shape == (5, 6)</text>
+
+    <rect x="540" y="300" width="170" height="32" rx="6" fill="#ffffff" stroke="#15803d"/>
+    <text x="625" y="321" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#15803d">compiled_fn_v2</text>
+
+    <text x="730" y="321" font-size="11" font-weight="600" letter-spacing="0.06em" fill="#15803d">&#10003; MATCH</text>
+  </g>
+
+  <line x1="80" y1="354" x2="860" y2="354" stroke="#e5e5e5" stroke-width="1"/>
+
+  <g opacity="0.45">
+    <text x="92" y="392" font-size="14" font-weight="600" fill="#737373">#3</text>
+    <text x="140" y="386" font-size="10" letter-spacing="0.1em" fill="#737373">GUARDS</text>
+    <text x="140" y="404" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#171717">args[0].shape == (2, 2)</text>
+    <text x="140" y="420" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#171717">args[1].shape == (2, 2)</text>
+
+    <rect x="540" y="386" width="170" height="32" rx="6" fill="#ffffff" stroke="#e5e5e5"/>
+    <text x="625" y="407" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#171717">compiled_fn_v3</text>
+  </g>
+  <text x="730" y="407" font-size="11" font-style="italic" fill="#737373">not scanned</text>
+
+  <text x="60" y="468" font-size="11" font-style="italic" fill="#15803d">If every entry misses, the wrapper traces a fresh graph, compiles it, and appends a new (guard_set, compiled_fn) entry.</text>
+</svg>

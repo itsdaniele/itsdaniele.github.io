@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 500" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Inter, sans-serif">
+  <text x="40" y="36" font-size="14" font-weight="600" fill="#171717">Tracing in motion</text>
+  <text x="40" y="56" font-size="11" fill="#737373">For <tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#171717">def fn(x, y): z = x + y</tspan> &#8212; the interpreter walks bytecode while the stack and the graph evolve in lockstep.</text>
+
+  <text x="170" y="96" text-anchor="middle" font-size="10" letter-spacing="0.12em" fill="#737373">BYTECODE</text>
+  <text x="450" y="96" text-anchor="middle" font-size="10" letter-spacing="0.12em" fill="#737373">STACK (top &#8594; bottom)</text>
+  <text x="750" y="96" text-anchor="middle" font-size="10" letter-spacing="0.12em" fill="#737373">GRAPH</text>
+
+  <line x1="40" y1="108" x2="900" y2="108" stroke="#e5e5e5" stroke-width="1"/>
+
+  <!-- ROW 0: initial state -->
+  <g transform="translate(0, 120)">
+    <text x="170" y="34" text-anchor="middle" font-size="11" font-style="italic" fill="#737373">(start of frame)</text>
+
+    <rect x="350" y="20" width="200" height="22" rx="4" fill="none" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3 3"/>
+    <text x="450" y="35" text-anchor="middle" font-size="11" font-style="italic" fill="#737373">empty</text>
+
+    <text x="610" y="22" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#0f766e">x = placeholder</text>
+    <text x="610" y="38" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#0f766e">y = placeholder</text>
+  </g>
+  <line x1="40" y1="186" x2="900" y2="186" stroke="#e5e5e5" stroke-width="1"/>
+
+  <!-- ROW 1: LOAD_FAST x -->
+  <g transform="translate(0, 186)">
+    <text x="170" y="38" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="12" fill="#171717">LOAD_FAST x</text>
+
+    <rect x="350" y="24" width="200" height="22" rx="4" fill="#ffffff" stroke="#e5e5e5"/>
+    <text x="450" y="40" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#171717">TensorVar(x)</text>
+
+    <text x="610" y="38" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#737373">(unchanged)</text>
+  </g>
+  <line x1="40" y1="252" x2="900" y2="252" stroke="#e5e5e5" stroke-width="1"/>
+
+  <!-- ROW 2: LOAD_FAST y -->
+  <g transform="translate(0, 252)">
+    <text x="170" y="38" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="12" fill="#171717">LOAD_FAST y</text>
+
+    <rect x="350" y="14" width="200" height="22" rx="4" fill="#ffffff" stroke="#e5e5e5"/>
+    <text x="450" y="30" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#171717">TensorVar(y)</text>
+
+    <rect x="350" y="38" width="200" height="22" rx="4" fill="#ffffff" stroke="#e5e5e5"/>
+    <text x="450" y="54" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#171717">TensorVar(x)</text>
+
+    <text x="610" y="38" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#737373">(unchanged)</text>
+  </g>
+  <line x1="40" y1="318" x2="900" y2="318" stroke="#e5e5e5" stroke-width="1"/>
+
+  <!-- ROW 3: BINARY_ADD (highlighted) -->
+  <rect x="0" y="318" width="940" height="66" fill="#fff7ed"/>
+  <g transform="translate(0, 318)">
+    <text x="170" y="34" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="12" font-weight="600" fill="#ea580c">BINARY_ADD</text>
+    <text x="170" y="50" text-anchor="middle" font-size="10" fill="#ea580c">pops 2, pushes 1</text>
+
+    <rect x="350" y="22" width="200" height="22" rx="4" fill="#fff" stroke="#ea580c"/>
+    <text x="450" y="38" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#ea580c">TensorVar(add_0)</text>
+
+    <text x="610" y="22" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#0f766e">x = placeholder</text>
+    <text x="610" y="38" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#0f766e">y = placeholder</text>
+    <text x="610" y="54" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#ea580c">add_0 = torch.add(x, y)</text>
+    <text x="828" y="54" font-size="10" fill="#ea580c" font-style="italic">&#8592; new node</text>
+  </g>
+  <line x1="40" y1="384" x2="900" y2="384" stroke="#e5e5e5" stroke-width="1"/>
+
+  <!-- ROW 4: STORE_FAST z -->
+  <g transform="translate(0, 384)">
+    <text x="170" y="38" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="12" fill="#171717">STORE_FAST z</text>
+
+    <rect x="350" y="24" width="200" height="22" rx="4" fill="none" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3 3"/>
+    <text x="450" y="40" text-anchor="middle" font-size="11" font-style="italic" fill="#737373">empty</text>
+
+    <text x="610" y="34" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#737373">(unchanged)</text>
+    <text x="610" y="50" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="10" fill="#737373">locals[z] = TensorVar(add_0)</text>
+  </g>
+  <line x1="40" y1="450" x2="900" y2="450" stroke="#e5e5e5" stroke-width="1"/>
+
+  <text x="40" y="476" font-size="11" fill="#ea580c" font-style="italic">Only the orange step touches the graph &#8212; every other instruction is plumbing.</text>
+</svg>
