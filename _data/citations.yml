@@ -1,5 +1,5 @@
 metadata:
-  last_updated: '2026-06-01'
+  last_updated: '2026-06-05'
 papers:
   _xugfIEAAAAJ:2osOgNQ5qMEC:
     citations: 38
@@ -14,7 +14,7 @@ papers:
     title: Fast attention over long sequences with dynamic sparse flash attention
     year: '2023'
   _xugfIEAAAAJ:LkGwnXOMwfcC:
-    citations: 118
+    citations: 119
     title: 'The mamba in the llama: Distilling and accelerating hybrid models'
     year: '2024'
   _xugfIEAAAAJ:Se3iqnhoufwC:
@@ -54,7 +54,7 @@ papers:
     title: Understanding and minimising outlier features in neural network training (2024)
     year: Unknown Year
   _xugfIEAAAAJ:u-x6o8ySG0sC:
-    citations: 4
+    citations: 3
     title: 'SUPA: A lightweight diagnostic simulator for machine learning in particle physics'
     year: '2023'
   _xugfIEAAAAJ:ufrVoPGSRksC:
