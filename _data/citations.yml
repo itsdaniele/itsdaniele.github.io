@@ -1,5 +1,5 @@
 metadata:
-  last_updated: '2026-06-05'
+  last_updated: '2026-06-15'
 papers:
   _xugfIEAAAAJ:2osOgNQ5qMEC:
     citations: 38
@@ -14,7 +14,7 @@ papers:
     title: Fast attention over long sequences with dynamic sparse flash attention
     year: '2023'
   _xugfIEAAAAJ:LkGwnXOMwfcC:
-    citations: 119
+    citations: 121
     title: 'The mamba in the llama: Distilling and accelerating hybrid models'
     year: '2024'
   _xugfIEAAAAJ:Se3iqnhoufwC:
@@ -50,7 +50,7 @@ papers:
     title: 'Thinking slow, fast: Scaling inference compute with distilled reasoners'
     year: '2025'
   _xugfIEAAAAJ:roLk4NBRz8UC:
-    citations: 3
+    citations: 4
     title: Understanding and minimising outlier features in neural network training (2024)
     year: Unknown Year
   _xugfIEAAAAJ:u-x6o8ySG0sC:
@@ -58,7 +58,7 @@ papers:
     title: 'SUPA: A lightweight diagnostic simulator for machine learning in particle physics'
     year: '2023'
   _xugfIEAAAAJ:ufrVoPGSRksC:
-    citations: 21
+    citations: 23
     title: 'M1: Towards scalable test-time compute with mamba reasoning models'
     year: '2025'
   _xugfIEAAAAJ:zYLM7Y9cAGgC:
