@@ -10,17 +10,17 @@
   </defs>
 
   <text x="40" y="36" font-size="14" font-weight="600" fill="#171717">Where the time goes</text>
-  <text x="40" y="56" font-size="11" fill="#737373">11 chained elementwise ops on a small tensor. Capturing a graph alone changes none of this &#8212; Inductor's speedup comes from kernel fusion.</text>
+  <text x="40" y="56" font-size="11" fill="#737373">11 chained elementwise ops + reduction. Capturing a graph alone changes none of this &#8212; Inductor's speedup comes from kernel fusion.</text>
 
   <text x="40" y="142" font-size="11" font-weight="600" letter-spacing="0.08em" fill="#171717">EAGER</text>
-  <text x="40" y="158" font-size="10" fill="#737373">11 launches</text>
+  <text x="40" y="158" font-size="10" fill="#737373">12 launches</text>
 
   <rect x="120" y="130" width="24" height="44" fill="#cbd5e1"/>
   <rect x="144" y="130" width="211" height="44" fill="#94a3b8"/>
   <rect x="355" y="130" width="475" height="44" fill="#ea580c"/>
   <rect x="830" y="130" width="10" height="44" fill="#0f766e"/>
   <text x="850" y="158" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#171717">~180 &#956;s</text>
-  <text x="592" y="158" text-anchor="middle" font-size="10" letter-spacing="0.06em" fill="#ffffff">11 &#215; KERNEL LAUNCH</text>
+  <text x="592" y="158" text-anchor="middle" font-size="10" letter-spacing="0.06em" fill="#ffffff">12 &#215; KERNEL LAUNCH</text>
 
   <text x="40" y="252" font-size="11" font-weight="600" letter-spacing="0.08em" fill="#171717">INDUCTOR</text>
   <text x="40" y="268" font-size="10" fill="#737373">1 fused kernel</text>
