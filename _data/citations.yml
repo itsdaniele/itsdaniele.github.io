@@ -1,12 +1,12 @@
 metadata:
-  last_updated: '2026-07-03'
+  last_updated: '2026-07-08'
 papers:
   _xugfIEAAAAJ:2osOgNQ5qMEC:
     citations: 38
     title: Faster causal attention over large sequences through sparse flash attention
     year: '2023'
   _xugfIEAAAAJ:9yKSN-GCB0IC:
-    citations: 9
+    citations: 10
     title: Graph neural networks go forward-forward
     year: '2023'
   _xugfIEAAAAJ:IjCSPb-OGe4C:
@@ -14,7 +14,7 @@ papers:
     title: Fast attention over long sequences with dynamic sparse flash attention
     year: '2023'
   _xugfIEAAAAJ:LkGwnXOMwfcC:
-    citations: 124
+    citations: 126
     title: 'The mamba in the llama: Distilling and accelerating hybrid models'
     year: '2024'
   _xugfIEAAAAJ:Se3iqnhoufwC:
@@ -46,7 +46,7 @@ papers:
     title: Computationally Empowered Learning Strategies for Non-Invasive Intracranial Brain-Computer Interfaces.
     year: '2020'
   _xugfIEAAAAJ:eQOLeE2rZwMC:
-    citations: 23
+    citations: 24
     title: 'Thinking slow, fast: Scaling inference compute with distilled reasoners'
     year: '2025'
   _xugfIEAAAAJ:roLk4NBRz8UC:
