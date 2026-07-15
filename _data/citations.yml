@@ -1,8 +1,8 @@
 metadata:
-  last_updated: '2026-07-08'
+  last_updated: '2026-07-15'
 papers:
   _xugfIEAAAAJ:2osOgNQ5qMEC:
-    citations: 38
+    citations: 39
     title: Faster causal attention over large sequences through sparse flash attention
     year: '2023'
   _xugfIEAAAAJ:9yKSN-GCB0IC:
@@ -14,7 +14,7 @@ papers:
     title: Fast attention over long sequences with dynamic sparse flash attention
     year: '2023'
   _xugfIEAAAAJ:LkGwnXOMwfcC:
-    citations: 126
+    citations: 127
     title: 'The mamba in the llama: Distilling and accelerating hybrid models'
     year: '2024'
   _xugfIEAAAAJ:Se3iqnhoufwC:
