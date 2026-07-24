@@ -1,5 +1,5 @@
 metadata:
-  last_updated: '2026-07-15'
+  last_updated: '2026-07-24'
 papers:
   _xugfIEAAAAJ:2osOgNQ5qMEC:
     citations: 39
@@ -10,11 +10,11 @@ papers:
     title: Graph neural networks go forward-forward
     year: '2023'
   _xugfIEAAAAJ:IjCSPb-OGe4C:
-    citations: 38
+    citations: 37
     title: Fast attention over long sequences with dynamic sparse flash attention
     year: '2023'
   _xugfIEAAAAJ:LkGwnXOMwfcC:
-    citations: 127
+    citations: 129
     title: 'The mamba in the llama: Distilling and accelerating hybrid models'
     year: '2024'
   _xugfIEAAAAJ:Se3iqnhoufwC:
@@ -24,6 +24,10 @@ papers:
   _xugfIEAAAAJ:UeHWp8X0CEIC:
     citations: 2
     title: Fast causal attention with dynamic sparsity
+    year: '2023'
+  _xugfIEAAAAJ:UebtZRa9Y70C:
+    citations: 0
+    title: Fast Causal Attention with Dynamic Sparsity
     year: '2023'
   _xugfIEAAAAJ:W7OEmFMy1HYC:
     citations: 3
@@ -62,6 +66,6 @@ papers:
     title: 'M1: Towards scalable test-time compute with mamba reasoning models'
     year: '2025'
   _xugfIEAAAAJ:zYLM7Y9cAGgC:
-    citations: 44
+    citations: 45
     title: Understanding and minimising outlier features in transformer training
     year: '2024'
