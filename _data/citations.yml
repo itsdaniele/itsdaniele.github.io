@@ -1,5 +1,5 @@
 metadata:
-  last_updated: '2026-07-24'
+  last_updated: '2026-08-26'
 papers:
   _xugfIEAAAAJ:2osOgNQ5qMEC:
     citations: 39
@@ -10,11 +10,11 @@ papers:
     title: Graph neural networks go forward-forward
     year: '2023'
   _xugfIEAAAAJ:IjCSPb-OGe4C:
-    citations: 37
+    citations: 40
     title: Fast attention over long sequences with dynamic sparse flash attention
     year: '2023'
   _xugfIEAAAAJ:LkGwnXOMwfcC:
-    citations: 129
+    citations: 130
     title: 'The mamba in the llama: Distilling and accelerating hybrid models'
     year: '2024'
   _xugfIEAAAAJ:Se3iqnhoufwC:
@@ -34,7 +34,7 @@ papers:
     title: Leveraging the true depth of llms
     year: '2025'
   _xugfIEAAAAJ:WF5omc3nYNoC:
-    citations: 12
+    citations: 14
     title: 'The mamba in the llama: Distilling and accelerating hybrid models, 2024'
     year: Unknown Year
   _xugfIEAAAAJ:YsMSGLbcyi4C:
@@ -50,7 +50,7 @@ papers:
     title: Computationally Empowered Learning Strategies for Non-Invasive Intracranial Brain-Computer Interfaces.
     year: '2020'
   _xugfIEAAAAJ:eQOLeE2rZwMC:
-    citations: 24
+    citations: 25
     title: 'Thinking slow, fast: Scaling inference compute with distilled reasoners'
     year: '2025'
   _xugfIEAAAAJ:roLk4NBRz8UC:
@@ -66,6 +66,6 @@ papers:
     title: 'M1: Towards scalable test-time compute with mamba reasoning models'
     year: '2025'
   _xugfIEAAAAJ:zYLM7Y9cAGgC:
-    citations: 45
+    citations: 46
     title: Understanding and minimising outlier features in transformer training
     year: '2024'
