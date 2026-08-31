@@ -604,7 +604,7 @@ On each call, every guard is checked. If all pass, the cached compiled function 
 
 ### Checking and Debugging Guards
 
-`GuardSet.from_example_inputs` produces three guards per tensor argument — one each for shape, dtype, and device. On every call, the wrapper runs the cached guard sets against the new arguments. Each guard is a tiny lambda (e.g. `tuple(args[0].shape) == (3, 4)`), so a full check costs a handful of Python comparisons. And when a call misses the cache, you can ask the guard set *why*:
+`GuardSet.from_example_inputs` produces three guards per tensor argument — one each for shape, dtype, and device. On every call, the wrapper runs the cached guard sets against the new arguments. Each guard is a tiny lambda (e.g. `tuple(args[0].shape) == (3, 4)`), so a full check costs a handful of Python comparisons. And when a call misses the cache, you can ask the guard set *why* — the wrapper exposes its cache as `fn._cache`, a list of `(guard_set, compiled_fn)` pairs:
 
 ```python
 # fn was traced with (3, 4) tensors; now call it with a new shape:
