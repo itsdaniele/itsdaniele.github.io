@@ -60,15 +60,11 @@ _styles: >
 
 <div class="l-body" markdown="1">
 
+_When you run code under `@torch.compile`, a lot happens under the hood: PyTorch intercepts Python bytecode, captures a graph of tensor operations, hands that graph to an optimizing compiler, and caches the result. This article rebuilds the pieces of that system from scratch, with a small implementation that exposes the moving parts._
 
-
-*When you run code under `@torch.compile`, a lot happens under the hood: PyTorch intercepts Python bytecode, captures a graph of tensor operations, hands that graph to an optimizing compiler, and caches the result. This article rebuilds the pieces of that system from scratch, with a small implementation that exposes the moving parts.*
-
-
-Note: *Coding agents generated a good part of the code. I then read the implementation line by line, added tests, wrote benchmark scripts, and used the toy system to build intuition.*
+Note: _Coding agents generated a good part of the code. I then read the implementation line by line, added tests, wrote benchmark scripts, and used the toy system to build intuition._
 
 </div>
-
 
 ## 1. The Big Picture
 
@@ -77,8 +73,6 @@ PyTorch makes modeling code convenient: in a module `forward()` method you can u
 PyTorch 2.0 introduced `torch.compile` to keep the flexible Python programming model while clawing back that performance. When you wrap a function in `torch.compile()` and call it, PyTorch captures a graph of your tensor operations (TorchDynamo's job), then hands that graph to an optimizing compiler (Inductor) that can fuse multiple operations into fewer kernels. Whenever the function is called again, PyTorch tries to reuse the same optimized graph, as long as the assumptions made during tracing still hold.
 
 > **Why this is faster on GPUs:** eager PyTorch launches one GPU kernel per operation. A fusible chain like `add → relu → mul` repeatedly reads tensors from GPU memory, writes intermediate tensors back, and pays launch overhead each time. Once Dynamo captures the whole chain as a graph, Inductor can fuse those operations into fewer kernels. In the best case, the GPU reads the data once, keeps intermediates in registers, does more work per launch, and writes the final result back once.
-
-
 
 All of this starts with the hard part: symbolically executing arbitrary Python and PyTorch code.
 
@@ -94,14 +88,13 @@ Capturing a graph of tensor operations from a Python function is hard. PyTorch w
 
 - **Lazy Tensors**: Record tensor operations at the tensor/backend level and defer execution until the result is needed. This gives the backend a graph it can optimize. Problem: Python has already run by the time those tensor ops are recorded. Lazy tensors can optimize tensor execution, but they do not solve the problem of intercepting arbitrary Python frames, understanding Python control flow, or skipping Python work on later calls.
 
-**TorchDynamo** (the thing that powers torch.compile) took a different approach: it works at the **bytecode level**, below Python source and above the C++ dispatcher. Using PEP 523's Frame Evaluation API, Dynamo installs a C-level hook that intercepts every Python frame *before* CPython's interpreter runs it. It then walks the bytecode instructions, symbolically evaluating them to identify tensor operations and record them into an FX graph.
-
+**TorchDynamo** (the thing that powers torch.compile) took a different approach: it works at the **bytecode level**, below Python source and above the C++ dispatcher. Using PEP 523's Frame Evaluation API, Dynamo installs a C-level hook that intercepts every Python frame _before_ CPython's interpreter runs it. It then walks the bytecode instructions, symbolically evaluating them to identify tensor operations and record them into an FX graph.
 
 ### Calling `torch.compile`
 
 ![The torch.compile pipeline: first call runs every stage; subsequent calls with matching guards skip straight to EXECUTE.](/assets/img/mini-dynamo/pipeline.svg)
 
-1. **Trace**: Dynamo intercepts the Python frame via PEP 523 and walks the bytecode. Tensor operations are recorded into an FX graph. Much of the surrounding Python logic is handled outside the graph: some values are evaluated concretely, some assumptions become *guards*, and unsupported regions can trigger *graph breaks*. We will see in detail what this means.
+1. **Trace**: Dynamo intercepts the Python frame via PEP 523 and walks the bytecode. Tensor operations are recorded into an FX graph. Much of the surrounding Python logic is handled outside the graph: some values are evaluated concretely, some assumptions become _guards_, and unsupported regions can trigger _graph breaks_. We will see in detail what this means.
 
 2. **Compile**: The FX graph is passed to a compiler backend. The default backend is Inductor, which generates Triton kernels on CUDA and C++ kernels on CPU.
 
@@ -115,7 +108,7 @@ Capturing a graph of tensor operations from a Python function is hard. PyTorch w
 
 ### What we'll build
 
-We will build this pipeline as a small, readable Python codebase. Our implementation, [*mini-dynamo*](https://github.com/itsdaniele/torchdynamo-mini), is a deliberately tiny TorchDynamo-style tracer. It captures the same core ideas while leaving out the machinery needed for arbitrary real-world PyTorch programs.
+We will build this pipeline as a small, readable Python codebase. Our implementation, [_mini-dynamo_](https://github.com/itsdaniele/torchdynamo-mini), is a deliberately tiny TorchDynamo-style tracer. It captures the same core ideas while leaving out the machinery needed for arbitrary real-world PyTorch programs.
 
 <aside markdown="1">
 
@@ -171,20 +164,20 @@ The package backend in `mini_dynamo/compiler.py` only implements the Python and 
 
 The table maps each component to its TorchDynamo counterpart:
 
-| Mini-dynamo | Real TorchDynamo | Role |
-|:--|:--|:--|
-| `symbolic_interpreter.py` | `InstructionTranslator` (~5,000 lines in `symbolic_convert.py`) | Walk bytecodes, build the graph. The heart of the system. |
-| `variable_tracker.py` | `VariableTracker` hierarchy (200+ subclasses across ~20 files) | Symbolic values on the interpreter's stack. Tell the interpreter what kind of thing each value is (tensor? constant? torch function?) so it can decide whether to record a graph node or evaluate concretely. |
-| `graph.py` | `torch.fx.Graph` + `torch.fx.Node` | The computation graph IR. A flat list of nodes, each describing one operation. This is the output of tracing and the input to compilation. |
-| `compiler.py` | Compiler backends (Inductor, etc.) | Takes a finished graph and produces a callable. Our simple backend generates Python source with pre-resolved names in an `exec()` namespace. Real Inductor generates Triton GPU kernels and C++ CPU kernels. The later Inductor integration example adds a small converter from our graph format to FX Graphs. |
-| `guards.py` | `torch._dynamo.guards` (C-accelerated) | Boolean predicates that encode the assumptions made during tracing. If guards pass on new inputs, the cached compiled function can be reused. |
-| `__init__.py` | `torch._dynamo.convert_frame` | The orchestrator. Manages the guard-cache loop: check guards → hit? run cached fn. Miss? trace → compile → guard → cache. |
+| Mini-dynamo               | Real TorchDynamo                                                | Role                                                                                                                                                                                                                                                                                                           |
+| :------------------------ | :-------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `symbolic_interpreter.py` | `InstructionTranslator` (~5,000 lines in `symbolic_convert.py`) | Walk bytecodes, build the graph. The heart of the system.                                                                                                                                                                                                                                                      |
+| `variable_tracker.py`     | `VariableTracker` hierarchy (200+ subclasses across ~20 files)  | Symbolic values on the interpreter's stack. Tell the interpreter what kind of thing each value is (tensor? constant? torch function?) so it can decide whether to record a graph node or evaluate concretely.                                                                                                  |
+| `graph.py`                | `torch.fx.Graph` + `torch.fx.Node`                              | The computation graph IR. A flat list of nodes, each describing one operation. This is the output of tracing and the input to compilation.                                                                                                                                                                     |
+| `compiler.py`             | Compiler backends (Inductor, etc.)                              | Takes a finished graph and produces a callable. Our simple backend generates Python source with pre-resolved names in an `exec()` namespace. Real Inductor generates Triton GPU kernels and C++ CPU kernels. The later Inductor integration example adds a small converter from our graph format to FX Graphs. |
+| `guards.py`               | `torch._dynamo.guards` (C-accelerated)                          | Boolean predicates that encode the assumptions made during tracing. If guards pass on new inputs, the cached compiled function can be reused.                                                                                                                                                                  |
+| `__init__.py`             | `torch._dynamo.convert_frame`                                   | The orchestrator. Manages the guard-cache loop: check guards → hit? run cached fn. Miss? trace → compile → guard → cache.                                                                                                                                                                                      |
 
 Two components deserve special attention because their roles are easy to confuse:
 
 **The Graph is the output.** It is a pure data structure: a list of nodes describing which tensor operations to perform. It has no logic and no execution semantics. After tracing, the compiler receives it as a recipe.
 
-**VariableTrackers are the process.** They are the symbolic values that live on the interpreter's stack *during* tracing. They tell the interpreter what type of thing each value is, so it can decide what to do with each bytecode instruction. When tracing finishes, the interpreter throws them away. They are scaffolding for the graph, not part of the final product.
+**VariableTrackers are the process.** They are the symbolic values that live on the interpreter's stack _during_ tracing. They tell the interpreter what type of thing each value is, so it can decide what to do with each bytecode instruction. When tracing finishes, the interpreter throws them away. They are scaffolding for the graph, not part of the final product.
 
 We need both because CPython's bytecodes are untyped. When the interpreter sees `BINARY_ADD`, it doesn't know if it's adding two tensors (→ record `torch.add` in the graph) or two integers (→ just compute the result). VariableTrackers carry the type information that lets it make this decision. The Graph records the decisions that were made.
 
@@ -192,30 +185,30 @@ We need both because CPython's bytecodes are untyped. When the interpreter sees 
 
 ## 3. CPython Is a Stack Machine
 
-To understand our symbolic interpreter, you need one fact about CPython: **it's a stack-based virtual machine.** Every Python function compiles to a sequence of bytecode instructions that manipulate a *value stack* and a *locals array*.
+To understand our symbolic interpreter, you need one fact about CPython: **it's a stack-based virtual machine.** Every Python function compiles to a sequence of bytecode instructions that manipulate a _value stack_ and a _locals array_.
 
 For `z = x + y`, CPython emits:
 
-| Instruction | Stack (after) | Effect |
-|:--|:--|:--|
-| `LOAD_FAST x` | `[x]` | Push local variable `x` |
-| `LOAD_FAST y` | `[x, y]` | Push local variable `y` |
-| `BINARY_ADD` | `[x+y]` | Pop two, push their sum |
-| `STORE_FAST z` | `[]` | Pop and store in local `z` |
+| Instruction    | Stack (after) | Effect                     |
+| :------------- | :------------ | :------------------------- |
+| `LOAD_FAST x`  | `[x]`         | Push local variable `x`    |
+| `LOAD_FAST y`  | `[x, y]`      | Push local variable `y`    |
+| `BINARY_ADD`   | `[x+y]`       | Pop two, push their sum    |
+| `STORE_FAST z` | `[]`          | Pop and store in local `z` |
 
-Our symbolic interpreter mirrors this exactly -- same stack, same locals, same dispatch loop. The only difference: instead of real Python values, the stack holds *symbolic wrappers*  that record operations into a graph.
+Our symbolic interpreter mirrors this exactly -- same stack, same locals, same dispatch loop. The only difference: instead of real Python values, the stack holds _symbolic wrappers_ that record operations into a graph.
 
 ---
 
 ## 4. VariableTrackers: The Symbolic Values
 
-Every value in our interpreter is a `VariableTracker`: *"I'm not a real value. I'm a description of a value that will exist at runtime."*
+Every value in our interpreter is a `VariableTracker`: _"I'm not a real value. I'm a description of a value that will exist at runtime."_
 
 We need exactly four types:
 
 ### TensorVariable
 
-The most important type. It holds a *graph node* (its identity in the computation graph) and an *example value* (a real tensor with the same shape/dtype/device, used for metadata propagation).
+The most important type. It holds a _graph node_ (its identity in the computation graph) and an _example value_ (a real tensor with the same shape/dtype/device, used for metadata propagation).
 
 ```python
 class TensorVariable(VariableTracker):
@@ -225,6 +218,7 @@ class TensorVariable(VariableTracker):
 ```
 
 When the interpreter sees `x + y` where both are `TensorVariable`s, it doesn't compute the runtime result that the user asked for. Instead, it:
+
 1. Creates a new `Node` in the graph: `call_function(torch.add, (x.node, y.node))`
 2. Computes an example output for metadata propagation: `torch.add(x.example_value, y.example_value)`
 3. Returns `TensorVariable(new_node, example_output)`
@@ -247,7 +241,7 @@ A reference to the `torch` module or one of its functions. When the interpreter 
 
 ### MethodVariable
 
-A bound tensor method like `x.sum`. Created when the interpreter accesses a method on a `TensorVariable`. It remembers *which tensor* and *which method*, so when called, it can record the correct graph node.
+A bound tensor method like `x.sum`. Created when the interpreter accesses a method on a `TensorVariable`. It remembers _which tensor_ and _which method_, so when called, it can record the correct graph node.
 
 <aside markdown="1">
 
@@ -273,12 +267,12 @@ class Node:
 
 Nodes come in four flavors:
 
-| `op` | Meaning | Example |
-|:--|:--|:--|
-| `placeholder` | Function input | `x = placeholder` |
+| `op`            | Meaning                    | Example                   |
+| :-------------- | :------------------------- | :------------------------ |
+| `placeholder`   | Function input             | `x = placeholder`         |
 | `call_function` | A function call on tensors | `add_0 = torch.add(x, y)` |
-| `call_method` | A method call on a tensor | `sum_0 = add_0.sum()` |
-| `output` | The return value | `return sum_0` |
+| `call_method`   | A method call on a tensor  | `sum_0 = add_0.sum()`     |
+| `output`        | The return value           | `return sum_0`            |
 
 For the function:
 
@@ -311,23 +305,23 @@ Notice the `2` in `torch.mul(add_0, 2)` -- it's a plain Python integer, not a `N
 
 The `SymbolicInterpreter` ties the previous pieces together. It reads bytecode, manipulates `VariableTracker`s on a stack, and writes nodes into the `Graph`. Everything else feeds into this loop or consumes its output.
 
-When you run a Python function normally, CPython walks the bytecode and *executes* each instruction on real objects: integers get added, tensors get multiplied, methods get invoked. We use the same bytecode and stack discipline, but we care about the *shape* of the computation rather than the user-facing return value. We re-implement enough of CPython's interpreter to produce a **graph**.
+When you run a Python function normally, CPython walks the bytecode and _executes_ each instruction on real objects: integers get added, tensors get multiplied, methods get invoked. We use the same bytecode and stack discipline, but we care about the _shape_ of the computation rather than the user-facing return value. We re-implement enough of CPython's interpreter to produce a **graph**.
 
 ### Two Interpreters in Parallel
 
 Picture two interpreters running side by side on the same bytecode, one real and one symbolic:
 
-| | CPython's interpreter | Our symbolic interpreter |
-|:--|:--|:--|
-| **Stack holds** | Real Python objects | `VariableTracker`s |
-| **Locals hold** | Real values | `VariableTracker`s |
+|                                 | CPython's interpreter                    | Our symbolic interpreter                                                                 |
+| :------------------------------ | :--------------------------------------- | :--------------------------------------------------------------------------------------- |
+| **Stack holds**                 | Real Python objects                      | `VariableTracker`s                                                                       |
+| **Locals hold**                 | Real values                              | `VariableTracker`s                                                                       |
 | **`BINARY_ADD` on two tensors** | Calls `torch.add`, produces a new tensor | Records `torch.add(x, y)` in the graph, pushes a new `TensorVariable` wrapping that node |
-| **`BINARY_ADD` on two ints** | Computes `a + b` | Computes `a + b`; constants are evaluated concretely |
-| **`CALL_METHOD x.sum()`** | Invokes the bound method | Records `x.sum()` in the graph |
-| **Unsupported opcode** | Executes it | Raises `NotImplementedError` |
-| **Final output** | A return value | A finished `Graph` |
+| **`BINARY_ADD` on two ints**    | Computes `a + b`                         | Computes `a + b`; constants are evaluated concretely                                     |
+| **`CALL_METHOD x.sum()`**       | Invokes the bound method                 | Records `x.sum()` in the graph                                                           |
+| **Unsupported opcode**          | Executes it                              | Raises `NotImplementedError`                                                             |
+| **Final output**                | A return value                           | A finished `Graph`                                                                       |
 
-CPython operates on values; mini-dynamo operates on *descriptions* of values. At every bytecode step, the symbolic interpreter makes one decision: **record** this operation into the graph, or **evaluate** it concretely on constants and metadata we already know. Repeating that decision across instructions produces the captured graph.
+CPython operates on values; mini-dynamo operates on _descriptions_ of values. At every bytecode step, the symbolic interpreter makes one decision: **record** this operation into the graph, or **evaluate** it concretely on constants and metadata we already know. Repeating that decision across instructions produces the captured graph.
 
 ### The Three Pieces of State
 
@@ -344,7 +338,7 @@ Everything the interpreter does is a transformation of these three. If you snaps
 Our `SymbolicInterpreter` is the direct analogue of TorchDynamo's `InstructionTranslator` (in `torch/_dynamo/symbolic_convert.py`). The two share the same skeleton: a value stack, a locals dict, an FX-style graph being mutated, and one handler per opcode. The differences are in scope, not in kind:
 
 - Real Dynamo handles ~160 opcodes including jumps, comparisons, exceptions, closures, and generator machinery. We handle a small straight-line subset.
-- Real Dynamo *inline-traces* into called functions. When `fn()` calls `helper()`, the tracer recursively walks the callee's bytecode too — during tracing, `helper`'s frame never actually runs — producing a single unified graph. Our walker only sees top-level bytecode; if it records a helper call at all, it records it as an opaque callable rather than looking inside.
+- Real Dynamo _inline-traces_ into called functions. When `fn()` calls `helper()`, the tracer recursively walks the callee's bytecode too — during tracing, `helper`'s frame never actually runs — producing a single unified graph. Our walker only sees top-level bytecode; if it records a helper call at all, it records it as an opaque callable rather than looking inside.
 - Real Dynamo emits **guards** on-the-fly as it makes assumptions (e.g. "I looked at `x.shape[0]` and treated it as `32`, so guard on that"). We emit guards after tracing, from the example inputs.
 - Real Dynamo can **break the graph** when it hits something unsupported: compile what it has so far, let the hard part run in plain Python, and resume tracing after. Our interpreter halts with `NotImplementedError`.
 
@@ -353,6 +347,7 @@ From here, we follow the walker from initialization through dispatch, then trace
 ### Initialization
 
 When we begin tracing `fn(x, y)`, we create a `SymbolicInterpreter` with:
+
 - A fresh `Graph`
 - An empty `stack`
 - `locals` populated with `TensorVariable` placeholders for each tensor argument
@@ -419,26 +414,26 @@ Trace `fn(x, y)`, where `fn` computes `z = x + y; w = z * 2; return w.sum()`. Th
 
 The full trace, including the multiplication and the method call:
 
-| Step | Instruction | Stack | Graph (new node) |
-|:--:|:--|:--|:--|
-| 1 | `LOAD_FAST x` | `[TensorVar(x)]` | -- |
-| 2 | `LOAD_FAST y` | `[TensorVar(x), TensorVar(y)]` | -- |
-| 3 | `BINARY_ADD` | `[TensorVar(add_0)]` | `add_0 = torch.add(x, y)` |
-| 4 | `STORE_FAST z` | `[]` | -- |
-| 5 | `LOAD_FAST z` | `[TensorVar(add_0)]` | -- |
-| 6 | `LOAD_CONST 2` | `[TensorVar(add_0), ConstVar(2)]` | -- |
-| 7 | `BINARY_MULTIPLY` | `[TensorVar(mul_0)]` | `mul_0 = torch.mul(add_0, 2)` |
-| 8 | `STORE_FAST w` | `[]` | -- |
-| 9 | `LOAD_FAST w` | `[TensorVar(mul_0)]` | -- |
-| 10 | `LOAD_METHOD sum` | `[MethodVar(mul_0, "sum")]` | -- |
-| 11 | `CALL_METHOD 0` | `[TensorVar(sum_0)]` | `sum_0 = mul_0.sum()` |
-| 12 | `RETURN_VALUE` | `[]` | `return sum_0` |
+| Step | Instruction       | Stack                             | Graph (new node)              |
+| :--: | :---------------- | :-------------------------------- | :---------------------------- |
+|  1   | `LOAD_FAST x`     | `[TensorVar(x)]`                  | --                            |
+|  2   | `LOAD_FAST y`     | `[TensorVar(x), TensorVar(y)]`    | --                            |
+|  3   | `BINARY_ADD`      | `[TensorVar(add_0)]`              | `add_0 = torch.add(x, y)`     |
+|  4   | `STORE_FAST z`    | `[]`                              | --                            |
+|  5   | `LOAD_FAST z`     | `[TensorVar(add_0)]`              | --                            |
+|  6   | `LOAD_CONST 2`    | `[TensorVar(add_0), ConstVar(2)]` | --                            |
+|  7   | `BINARY_MULTIPLY` | `[TensorVar(mul_0)]`              | `mul_0 = torch.mul(add_0, 2)` |
+|  8   | `STORE_FAST w`    | `[]`                              | --                            |
+|  9   | `LOAD_FAST w`     | `[TensorVar(mul_0)]`              | --                            |
+|  10  | `LOAD_METHOD sum` | `[MethodVar(mul_0, "sum")]`       | --                            |
+|  11  | `CALL_METHOD 0`   | `[TensorVar(sum_0)]`              | `sum_0 = mul_0.sum()`         |
+|  12  | `RETURN_VALUE`    | `[]`                              | `return sum_0`                |
 
 Notice three details:
 
 **Steps 3 and 7** -- when a binary operation involves a `TensorVariable`, the interpreter records a `torch.add` or `torch.mul` node in the graph and pushes a new `TensorVariable` wrapping that node. The constant `2` is passed directly into the node's args.
 
-**Step 10** -- `LOAD_METHOD sum` on a `TensorVariable` produces a `MethodVariable`, not a graph node. The method has been *looked up*, not *called*. Step 11 creates the graph node when `CALL_METHOD` executes it.
+**Step 10** -- `LOAD_METHOD sum` on a `TensorVariable` produces a `MethodVariable`, not a graph node. The method has been _looked up_, not _called_. Step 11 creates the graph node when `CALL_METHOD` executes it.
 
 **Step 12** -- `RETURN_VALUE` marks the output. The graph is now complete.
 
@@ -473,7 +468,7 @@ def _handle_call(self, fn, args):
     raise RuntimeError(f"Don't know how to call {type(fn).__name__}")
 ```
 
-The design has three paths: **known tensor operations are traced; opaque global callables with tensor inputs can be recorded as `call_function` nodes; supported pure-Python work on constants is evaluated.** Mini-dynamo still raises outside that narrow subset, especially for unsupported bytecodes, keyword calls, and non-tensor returns. Real TorchDynamo can guard on Python values, rewrite bytecode, and resume after graph breaks. A *graph break* is Dynamo's escape hatch for the "don't know how to handle this" case: it compiles the graph it has built so far, hands control back to the regular Python interpreter to run the unsupported bit (a `print`, an unusual data structure, a call into a C extension), and then starts a fresh trace from the next instruction. A single Python function can become several compiled graphs stitched together with plain eager code in between.
+The design has three paths: **known tensor operations are traced; opaque global callables with tensor inputs can be recorded as `call_function` nodes; supported pure-Python work on constants is evaluated.** Mini-dynamo still raises outside that narrow subset, especially for unsupported bytecodes, keyword calls, and non-tensor returns. Real TorchDynamo can guard on Python values, rewrite bytecode, and resume after graph breaks. A _graph break_ is Dynamo's escape hatch for the "don't know how to handle this" case: it compiles the graph it has built so far, hands control back to the regular Python interpreter to run the unsupported bit (a `print`, an unusual data structure, a call into a C extension), and then starts a fresh trace from the next instruction. A single Python function can become several compiled graphs stitched together with plain eager code in between.
 
 <aside markdown="1">
 
@@ -604,7 +599,7 @@ On each call, every guard is checked. If all pass, the cached compiled function 
 
 ### Checking and Debugging Guards
 
-`GuardSet.from_example_inputs` produces three guards per tensor argument — one each for shape, dtype, and device. On every call, the wrapper runs the cached guard sets against the new arguments. Each guard is a tiny lambda (e.g. `tuple(args[0].shape) == (3, 4)`), so a full check costs a handful of Python comparisons. And when a call misses the cache, you can ask the guard set *why* — the wrapper exposes its cache as `fn._cache`, a list of `(guard_set, compiled_fn)` pairs:
+`GuardSet.from_example_inputs` produces three guards per tensor argument — one each for shape, dtype, and device. On every call, the wrapper runs the cached guard sets against the new arguments. Each guard is a tiny lambda (e.g. `tuple(args[0].shape) == (3, 4)`), so a full check costs a handful of Python comparisons. And when a call misses the cache, you can ask the guard set _why_ — the wrapper exposes its cache as `fn._cache`, a list of `(guard_set, compiled_fn)` pairs:
 
 ```python
 # fn was traced with (3, 4) tensors; now call it with a new shape:
@@ -620,10 +615,10 @@ The mechanism is small: the first call pays the compile tax, identical calls pay
 
 Real Dynamo makes the same trade-off:
 
-| | First call | Subsequent calls (cache hit) | Shape change (cache miss) |
-|:--|:--|:--|:--|
-| **Cost** | Full trace + compile | Guard checks only | Full retrace + compile |
-| **Typical time** | Milliseconds | Microseconds | Milliseconds |
+|                  | First call           | Subsequent calls (cache hit) | Shape change (cache miss) |
+| :--------------- | :------------------- | :--------------------------- | :------------------------ |
+| **Cost**         | Full trace + compile | Guard checks only            | Full retrace + compile    |
+| **Typical time** | Milliseconds         | Microseconds                 | Milliseconds              |
 
 <aside markdown="1">
 
@@ -704,7 +699,7 @@ Graph:
   return sum_0
 ```
 
-Notice what disappeared: no `z = ...`, no `w = ...`, no `STORE_FAST` noise, no `LOAD_GLOBAL torch` lookups. The intermediate local variables from the Python source have been flattened into a straight-line DAG of tensor operations. The constant `2` is inlined directly into `torch.mul`'s args rather than becoming a node. The graph works as an IR because it is a pure description of *"what tensor ops, in what order, wired how"*, stripped of everything the compiler does not need.
+Notice what disappeared: no `z = ...`, no `w = ...`, no `STORE_FAST` noise, no `LOAD_GLOBAL torch` lookups. The intermediate local variables from the Python source have been flattened into a straight-line DAG of tensor operations. The constant `2` is inlined directly into `torch.mul`'s args rather than becoming a node. The graph works as an IR because it is a pure description of _"what tensor ops, in what order, wired how"_, stripped of everything the compiler does not need.
 
 ### Step 2: Compile
 
@@ -720,7 +715,7 @@ def compiled_fn(x, y):
 
 The `__fn_add_0` and `__fn_mul_0` names are keys into the namespace the compiler passes to `exec()`. That dict looks like `{"__fn_add_0": torch.add, "__fn_mul_0": torch.mul}`, and it becomes the globals for the `exec()` call that materializes the function. Each op still goes through `torch.add` and the full PyTorch dispatcher. Each op still launches its own kernel. We have not fused anything, skipped the C++ dispatcher, or avoided a kernel launch.
 
-The Python backend produces a faithful, standalone callable that does what the captured graph says. Kernel fusion and dispatcher elimination happen when you hand the *same* graph to Inductor instead, which we get to in Section 10.
+The Python backend produces a faithful, standalone callable that does what the captured graph says. Kernel fusion and dispatcher elimination happen when you hand the _same_ graph to Inductor instead, which we get to in Section 10.
 
 ### Step 3: Guard
 
@@ -737,7 +732,7 @@ GuardSet([
 ])
 ```
 
-These six predicates form the contract: "the `compiled_fn` we just produced is valid as long as these hold". The guard set is not attached to the tensors `a` and `b`; it is a set of *checks* that future arguments must satisfy.
+These six predicates form the contract: "the `compiled_fn` we just produced is valid as long as these hold". The guard set is not attached to the tensors `a` and `b`; it is a set of _checks_ that future arguments must satisfy.
 
 ### Step 4: Cache
 
@@ -785,15 +780,15 @@ With the full system built, we can ask: **how much faster is it?**
 
 A rough per-op cost decomposition for an elementwise op in eager PyTorch on a modern GPU looks like this. The exact numbers vary by device, driver, PyTorch version, tensor size, and whether you're on CUDA or MPS, but the ordering is what matters:
 
-| Cost | Typical scale per op | Who pays it |
-|:--|:--|:--|
-| CPython bytecode dispatch | tens of nanoseconds | The interpreter |
-| Python-level method resolution, `__torch_function__` | hundreds of nanoseconds | CPython + PyTorch's Python bindings |
-| PyTorch C++ dispatcher (device, autograd, vmap, …) | a few microseconds | libtorch |
-| Kernel launch onto the CUDA / MPS stream | 5–20 microseconds | The GPU driver |
-| The kernel itself | nanoseconds to milliseconds | The GPU |
+| Cost                                                 | Typical scale per op        | Who pays it                         |
+| :--------------------------------------------------- | :-------------------------- | :---------------------------------- |
+| CPython bytecode dispatch                            | tens of nanoseconds         | The interpreter                     |
+| Python-level method resolution, `__torch_function__` | hundreds of nanoseconds     | CPython + PyTorch's Python bindings |
+| PyTorch C++ dispatcher (device, autograd, vmap, …)   | a few microseconds          | libtorch                            |
+| Kernel launch onto the CUDA / MPS stream             | 5–20 microseconds           | The GPU driver                      |
+| The kernel itself                                    | nanoseconds to milliseconds | The GPU                             |
 
-The first two rows are what most people mean when they say "Python overhead." They are also the *smallest* rows. Our Python backend only touches those: it pre-resolves function lookups into the generated function's namespace so each op skips one `LOAD_GLOBAL torch` + `LOAD_ATTR add` pair. Nothing below that line changes. Every op still boxes arguments into PyObjects, still traverses libtorch's dispatch key logic, still waits on its own kernel launch.
+The first two rows are what most people mean when they say "Python overhead." They are also the _smallest_ rows. Our Python backend only touches those: it pre-resolves function lookups into the generated function's namespace so each op skips one `LOAD_GLOBAL torch` + `LOAD_ATTR add` pair. Nothing below that line changes. Every op still boxes arguments into PyObjects, still traverses libtorch's dispatch key logic, still waits on its own kernel launch.
 
 The benchmark numbers follow that pattern, but the exact outcome is backend- and shape-dependent. Running the CPU benchmark `examples/benchmark.py` on one Slurm node (Python 3.10.12, PyTorch 2.10.0+cu128) produced this 256×256 no-guard result for the raw generated Python function — these are CPU tensors, so Inductor is generating fused C++ kernels here, not GPU code:
 
@@ -819,21 +814,21 @@ Treat these as measurements of this repository's toy benchmarks, not universal b
 
 The Python backend's result is within noise. We saved a handful of bytecodes per op, and the lower layers dwarf that.
 
-The JIT backend's wins, when they appear, do *not* come from bytecode dispatch savings. `torch.jit.trace` wraps the generated function into a single TorchScript graph call, so from Python's point of view the whole chain becomes one `call into C++`. Python drops out of the loop between ops, and some of the per-op dispatcher and Python↔C++ boundary-crossing work gets amortized. We're nibbling at rows 2–3 of the table, not row 1.
+The JIT backend's wins, when they appear, do _not_ come from bytecode dispatch savings. `torch.jit.trace` wraps the generated function into a single TorchScript graph call, so from Python's point of view the whole chain becomes one `call into C++`. Python drops out of the loop between ops, and some of the per-op dispatcher and Python↔C++ boundary-crossing work gets amortized. We're nibbling at rows 2–3 of the table, not row 1.
 
 ### Where Inductor Can Win
 
-When Inductor wins, the speedup comes from a different layer. It operates *below* the dispatcher rather than saving a few interpreter instructions above it, and it relies on having a captured graph as input:
+When Inductor wins, the speedup comes from a different layer. It operates _below_ the dispatcher rather than saving a few interpreter instructions above it, and it relies on having a captured graph as input:
 
 - **Kernel fusion.** Inductor can generate a single Triton (GPU) or C++ (CPU) kernel for a whole chain of memory-bound ops. Eager does one kernel per operation; for the `many_ops` benchmark above, that means 11 elementwise kernels plus the final reduction. Each kernel reads from HBM, computes one op, and writes back. Fusion reduces those round-trips. For favorable elementwise chains and activations, this often accounts for large speedups in PyTorch benchmarks.
 - **Launch overhead collapse.** Even after fusion, each kernel launch still costs microseconds. When the same shapes recur (e.g. the steady-state of a training loop), CUDA graph integration lets you record the launches once and replay them as a single stream op, eliminating the per-step dispatcher and launch costs.
 - **Memory planning.** With a full graph in hand, Inductor can plan intermediate buffers once and reuse them, avoiding the per-op allocator churn eager incurs.
 
-None of these live in our mini-dynamo backend. They require the graph as input, and they operate on the *biggest* rows of the cost table: the dispatcher, the launch, and the kernel itself. The microseconds live there.
+None of these live in our mini-dynamo backend. They require the graph as input, and they operate on the _biggest_ rows of the cost table: the dispatcher, the launch, and the kernel itself. The microseconds live there.
 
 ### Dynamo Captures, Inductor Optimizes
 
-**Dynamo and Inductor solve different problems.** Dynamo captures the graph; on its own, that brings almost no performance gain. Inductor optimizes the graph; in many deep-learning workloads, that is where the meaningful speedup comes from. The bytecode tracer exists to hand an optimizing backend a graph it can fuse, schedule, and lower. Our mini-dynamo replaces only the Dynamo part. Because we produce a compatible graph, we can plug in the *real* Inductor backend and measure the backend's behavior directly:
+**Dynamo and Inductor solve different problems.** Dynamo captures the graph; on its own, that brings almost no performance gain. Inductor optimizes the graph; in many deep-learning workloads, that is where the meaningful speedup comes from. The bytecode tracer exists to hand an optimizing backend a graph it can fuse, schedule, and lower. Our mini-dynamo replaces only the Dynamo part. Because we produce a compatible graph, we can plug in the _real_ Inductor backend and measure the backend's behavior directly:
 
 We can convert our mini-dynamo graph into an `fx.GraphModule`, lower it to ATen ops, and pass it directly to `compile_fx_inner`, Inductor's internal entry point. This is a private PyTorch API, so the repository pins PyTorch `2.10.0` and treats the integration as educational rather than stable public surface area. For the straight-line tensor programs covered by the parity tests, this produces the same ATen graph as real Dynamo's export path and the same generated Inductor kernels on the tested backend. The tests validate that narrow claim, not general equivalence across arbitrary PyTorch programs, devices, or Inductor configurations.
 
@@ -876,9 +871,9 @@ Mini-dynamo demonstrates the architecture of TorchDynamo. But real Dynamo is a v
 
 Real Dynamo doesn't use `dis.get_instructions()`. It installs a **C-level frame evaluator** via PEP 523 that intercepts every Python frame before CPython's interpreter runs it — no change to how you call your functions. On top of that interception, real Dynamo's tracer supports:
 
-- **Function inlining:** When `fn()` calls `helper()`, Dynamo traces *into* the callee by recursively walking its bytecode (during tracing, `helper`'s frame never actually runs), capturing a single unified graph. Our bytecode walker only sees the top-level function.
+- **Function inlining:** When `fn()` calls `helper()`, Dynamo traces _into_ the callee by recursively walking its bytecode (during tracing, `helper`'s frame never actually runs), capturing a single unified graph. Our bytecode walker only sees the top-level function.
 
-- **Graph breaks:** When Dynamo hits an unsupported operation (a `print()`, an unsupported data structure), it can *break the graph* by compiling what it has so far, executing the unsupported operation in normal Python, and resuming tracing after. Our interpreter has no graph-break machinery: unsupported bytecodes raise `NotImplementedError`, and opaque helper calls are recorded only as ordinary call nodes if the narrow tracing path can represent them.
+- **Graph breaks:** When Dynamo hits an unsupported operation (a `print()`, an unsupported data structure), it can _break the graph_ by compiling what it has so far, executing the unsupported operation in normal Python, and resuming tracing after. Our interpreter has no graph-break machinery: unsupported bytecodes raise `NotImplementedError`, and opaque helper calls are recorded only as ordinary call nodes if the narrow tracing path can represent them.
 
 ### Control Flow
 
@@ -908,7 +903,7 @@ The symbolic interpreter is a CPython emulator. The graph is an IR. The compiler
 
 <div class="l-body" markdown="1">
 
-*The full source code for mini-dynamo is at [github.com/itsdaniele/torchdynamo-mini](https://github.com/itsdaniele/torchdynamo-mini). Every module is heavily commented and designed to be read linearly.*
+_The full source code for mini-dynamo is at [github.com/itsdaniele/torchdynamo-mini](https://github.com/itsdaniele/torchdynamo-mini). Every module is heavily commented and designed to be read linearly._
 
 </div>
 
@@ -918,17 +913,17 @@ The symbolic interpreter is a CPython emulator. The graph is an IR. The compiler
 
 ## Appendix: File Map
 
-| File | Purpose |
-|:--|:--|
-| `mini_dynamo/__init__.py` | The `compile()` decorator -- ties together all five stages |
+| File                                  | Purpose                                                     |
+| :------------------------------------ | :---------------------------------------------------------- |
+| `mini_dynamo/__init__.py`             | The `compile()` decorator -- ties together all five stages  |
 | `mini_dynamo/symbolic_interpreter.py` | The bytecode walker -- CPython emulator on VariableTrackers |
-| `mini_dynamo/variable_tracker.py` | Four symbolic value types |
-| `mini_dynamo/graph.py` | The computation graph IR (`Node` + `Graph`) |
-| `mini_dynamo/compiler.py` | Code generation backends (Python + JIT) |
-| `mini_dynamo/guards.py` | Guard creation and checking |
-| `examples/benchmark.py` | Performance analysis: where speedup comes from |
-| `examples/benchmark_mps.py` | GPU benchmark: Python vs JIT vs Inductor |
-| `examples/benchmark_transformers.py` | Transformer-style fusion pattern benchmark |
-| `examples/inductor_integration.py` | Plugging into the real Inductor backend |
+| `mini_dynamo/variable_tracker.py`     | Four symbolic value types                                   |
+| `mini_dynamo/graph.py`                | The computation graph IR (`Node` + `Graph`)                 |
+| `mini_dynamo/compiler.py`             | Code generation backends (Python + JIT)                     |
+| `mini_dynamo/guards.py`               | Guard creation and checking                                 |
+| `examples/benchmark.py`               | Performance analysis: where speedup comes from              |
+| `examples/benchmark_mps.py`           | GPU benchmark: Python vs JIT vs Inductor                    |
+| `examples/benchmark_transformers.py`  | Transformer-style fusion pattern benchmark                  |
+| `examples/inductor_integration.py`    | Plugging into the real Inductor backend                     |
 
 </div>
