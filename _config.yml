@@ -2,6 +2,7 @@
 # Site settings
 # -----------------------------------------------------------------------------
 contact_note:
+timezone: Europe/Zurich # used to interpret and render post dates
 title: Daniele Paliotta # the website title (if blank, full name will be used instead)
 first_name: Daniele
 middle_name:
