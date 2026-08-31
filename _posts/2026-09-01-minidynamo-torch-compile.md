@@ -2,7 +2,7 @@
 layout: post
 title: "MiniDynamo: A Tiny torch.compile from Scratch"
 description: Rebuilding the core ideas behind torch.compile with a small TorchDynamo-style tracer.
-date: 2026-05-27 11:12:00-0400
+date: 2026-09-01 10:00:00-0400
 _styles: >
   #markdown-content {
     line-height: 1.75;

@@ -1,7 +1,7 @@
 ---
 layout: about
 title: about
-description: Machine Learning Group • University of Geneva
+description: Member of Technical Staff • Cartesia
 permalink: /
 #subtitle: <strong>PhD student</strong> @ University of Geneva.
 
@@ -26,11 +26,11 @@ latest_posts:
   limit: 3 # leave blank to include all the blog posts
 ---
 
-Hi 👋 ! I'm Daniele. I am PhD candidate in the [Machine Learning Group](https://mlg.unige.ch) at the University of Geneva, under the supervision of François Fleuret. My focus is on transformers, LLM systems and efficiency, and alternative architectures.
+Hi 👋 ! I'm Daniele. I am a Member of Technical Staff at [Cartesia](https://cartesia.ai/), where I work on multimodal and TTS foundation models (transformers, state space models, linear RNNs) with a strong focus on efficiency.
 
-Recently, I was a research intern at [Cartesia](https://cartesia.ai/) working on multimodal and TTS foundation models (transformers, state space models, linear RNNs) with a strong focus on efficiency.
+I hold a PhD from the [Machine Learning Group](https://mlg.unige.ch) at the University of Geneva, where I was supervised by François Fleuret. My research focused on transformers, LLM systems and efficiency, and alternative architectures.
 
-Previously, I was a researcher at [Together AI](https://www.together.ai/) supervised by [Tri Dao](https://tridao.me/), where I worked on LLM distillation, efficient inference, and developed speculative decoding for Mamba/linear RNNs.
+During my PhD, I was a research intern at Cartesia and a researcher at [Together AI](https://www.together.ai/) supervised by [Tri Dao](https://tridao.me/), where I worked on LLM distillation, efficient inference, and developed speculative decoding for Mamba/linear RNNs.
 
 In a previous life, I have worked as a software engineer, I have done machine learning at [Truelayer](https://truelayer.com/), and I have played in [Capture the Flag competitions](https://theromanxpl0it.github.io/).
 
