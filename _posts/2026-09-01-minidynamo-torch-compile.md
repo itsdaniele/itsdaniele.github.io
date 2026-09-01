@@ -66,6 +66,17 @@ Note: _Coding agents generated a good part of the code. I then read the implemen
 
 </div>
 
+<aside markdown="1">
+
+**TL;DR**
+
+- `torch.compile` is a pipeline: **trace → compile → guard → cache → execute**. This post rebuilds it in ~1,000 lines of readable Python ([mini-dynamo](https://github.com/itsdaniele/torchdynamo-mini)).
+- TorchDynamo captures graphs at the **bytecode level**: it re-implements CPython's interpreter over symbolic values and records tensor operations into a graph (Sections 3–6).
+- **Guards** — checks on shape, dtype, and device — are the contract that decides when cached compiled code can be reused. A high recompilation rate is the usual reason `torch.compile` disappoints (Section 8).
+- Graph capture alone produces **no speedup** (we measure 1.00x). The wins come from what an optimizing backend like Inductor does with the captured graph — and our mini graphs can drive the real Inductor to prove it (Section 10).
+
+</aside>
+
 ## 1. The Big Picture
 
 PyTorch makes modeling code convenient: in a module `forward()` method you can use `if` statements, call helper functions, print for debugging, and rely on ordinary Python control flow. PyTorch calls this **eager mode** — each tensor operation runs the moment Python reaches it, dispatched to the device one at a time. A chain of eleven elementwise operations (like the benchmark function we will use later) means eleven kernel launches, eleven memory round-trips, and a CPU-side dispatcher between each operation. This flexibility was probably the main reason PyTorch won over TensorFlow, but it leaves performance on the table.
