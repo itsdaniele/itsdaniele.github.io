@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Inside @compile — minidynamo</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <main class="walkthrough" aria-labelledby="heading">
+      <header>
+        <div>
+          <p class="eyebrow">minidynamo · Python backend</p>
+          <h1 id="heading">Inside @compile</h1>
+        </div>
+        <span class="brand-mark" aria-hidden="true">ƒ</span>
+      </header>
+      <noscript
+        ><p>
+          The first call traces the function, compiles its graph, and caches the callable with guards. Later calls check those guards and reuse a
+          matching callable. Enable JavaScript to step through the animation.
+        </p></noscript
+      >
+      <div id="interactive" hidden>
+        <nav class="scenarios" aria-label="Choose a call">
+          <button type="button" data-scenario="first" aria-pressed="true">First call</button>
+          <button type="button" data-scenario="repeat" aria-pressed="false">Same shape</button>
+          <button type="button" data-scenario="changed" aria-pressed="false">New shape</button>
+        </nav>
+        <ol class="route" aria-label="Compilation pipeline">
+          <li data-stage="lookup">Lookup</li>
+          <li data-stage="trace">Trace</li>
+          <li data-stage="compile">Compile</li>
+          <li data-stage="guards">Guards</li>
+          <li data-stage="store">Cache</li>
+          <li data-stage="execute">Execute</li>
+        </ol>
+        <div class="board">
+          <section class="source-panel" aria-label="Python function and inputs">
+            <pre
+              class="source-code"
+            ><code><span data-line="0">@minidynamo.compile</span><span data-line="1">def fn(x, y):</span><span data-line="2">    z = x + y</span><span data-line="3">    w = z * 2</span><span data-line="4">    return w.sum()</span></code></pre>
+            <div class="input-meta">
+              <span class="input-dot" aria-hidden="true"></span><code id="call">fn(x, y)</code><span id="shape">(2, 2)</span>
+            </div>
+            <p class="input-note" id="input-note">float32 · CPU</p>
+          </section>
+          <section class="state-panel" aria-label="Compiler state">
+            <div class="state-label"><span id="panel-label">The wrapper</span><span id="panel-badge"></span></div>
+            <div id="state-view"></div>
+          </section>
+        </div>
+        <div class="cache-strip" aria-label="Cached compiled functions">
+          <span class="cache-label">Cache</span>
+          <div id="cache-entries"></div>
+        </div>
+        <section class="narration" aria-live="polite" aria-atomic="true">
+          <h2 id="step-title"></h2>
+          <p id="step-detail"></p>
+        </section>
+        <footer class="controls">
+          <button type="button" id="play" class="primary">Play first call</button>
+          <div class="step-controls">
+            <button type="button" id="previous" aria-label="Previous step" title="Previous step">←</button>
+            <span id="step-count" aria-label="Current step"></span>
+            <button type="button" id="next" aria-label="Next step" title="Next step">→</button>
+          </div>
+        </footer>
+      </div>
+    </main>
+  </body>
+</html>
