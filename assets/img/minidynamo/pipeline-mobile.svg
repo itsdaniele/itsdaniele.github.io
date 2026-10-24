@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 360 432"
+  role="img"
+  aria-labelledby="title description"
+  font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif"
+>
+  <title id="title">First call and cached execution</title>
+  <desc id="description">
+    The first call traces, compiles, builds guards, caches, and executes. Later calls check guards and reuse the matching compiled function.
+  </desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L9,5 L0,10 z" fill="#4b5563" />
+    </marker>
+  </defs>
+  <rect width="360" height="432" rx="10" fill="#ffffff" />
+  <text x="22" y="34" font-size="20" fill="#1f2937" text-anchor="start" font-weight="600">First call</text>
+  <text x="204" y="34" font-size="20" fill="#1f2937" text-anchor="start" font-weight="600">Later calls</text>
+  <rect x="22" y="58" width="156" height="48" rx="8" fill="#f8fafc" stroke="#cbd5e1" />
+  <text x="100" y="89" font-size="18" fill="#1f2937" text-anchor="middle" font-weight="600">Trace</text>
+  <line x1="100" y1="106" x2="100" y2="132" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)" />
+  <rect x="22" y="134" width="156" height="48" rx="8" fill="#f8fafc" stroke="#cbd5e1" />
+  <text x="100" y="165" font-size="18" fill="#1f2937" text-anchor="middle" font-weight="600">Compile</text>
+  <line x1="100" y1="182" x2="100" y2="208" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)" />
+  <rect x="22" y="210" width="156" height="48" rx="8" fill="#f8fafc" stroke="#cbd5e1" />
+  <text x="100" y="241" font-size="18" fill="#1f2937" text-anchor="middle" font-weight="600">Guards</text>
+  <line x1="100" y1="258" x2="100" y2="284" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)" />
+  <rect x="22" y="286" width="156" height="48" rx="8" fill="#f8fafc" stroke="#cbd5e1" />
+  <text x="100" y="317" font-size="18" fill="#1f2937" text-anchor="middle" font-weight="600">Cache</text>
+  <line x1="100" y1="334" x2="100" y2="360" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)" />
+  <rect x="22" y="362" width="156" height="48" rx="8" fill="#f8fafc" stroke="#cbd5e1" />
+  <text x="100" y="393" font-size="18" fill="#1f2937" text-anchor="middle" font-weight="600">Execute</text>
+  <rect x="204" y="58" width="134" height="72" rx="8" fill="#f0fdfa" stroke="#0f766e" />
+  <text x="271" y="87" font-size="18" fill="#0f766e" text-anchor="middle">Check</text>
+  <text x="271" y="111" font-size="18" fill="#0f766e" text-anchor="middle">guards</text>
+  <path d="M271 130 V386 H180" fill="none" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)" />
+  <text x="281" y="270" font-size="18" fill="#4b5563" text-anchor="start">match</text>
+</svg>

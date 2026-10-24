@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 360 704"
+  role="img"
+  aria-labelledby="title description"
+  font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif"
+>
+  <title id="title">From source to captured graph</title>
+  <desc id="description">
+    Python adds x and y, multiplies by the constant 2, then sums. The captured graph connects the two inputs to torch.add, torch.mul with constant 2,
+    the sum method, and the output.
+  </desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L9,5 L0,10 z" fill="#4b5563" />
+    </marker>
+  </defs>
+  <rect width="360" height="704" rx="10" fill="#ffffff" />
+  <text x="18" y="32" font-size="20" fill="#1f2937" text-anchor="start" font-weight="600">Python source</text>
+  <rect x="18" y="50" width="324" height="160" rx="8" fill="#f8fafc" stroke="#cbd5e1" />
+  <text x="36" y="84" font-size="20" fill="#1f2937" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    def fn(x, y):
+  </text>
+  <text x="36" y="114" font-size="20" fill="#1f2937" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+        z = x + y
+  </text>
+  <text x="36" y="144" font-size="20" fill="#1f2937" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+        w = z * 2
+  </text>
+  <text x="36" y="174" font-size="20" fill="#1f2937" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+        return w.sum()
+  </text>
+  <line x1="180" y1="220" x2="180" y2="256" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)" />
+  <text x="204" y="244" font-size="18" fill="#4b5563" text-anchor="start">trace</text>
+  <text x="18" y="291" font-size="20" fill="#1f2937" text-anchor="start" font-weight="600">Captured graph</text>
+  <rect x="66" y="315" width="56" height="44" rx="8" fill="#f8fafc" stroke="#0f766e" />
+  <text x="94.0" y="344" font-size="20" fill="#0f766e" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    x
+  </text>
+  <rect x="170" y="315" width="56" height="44" rx="8" fill="#f8fafc" stroke="#0f766e" />
+  <text x="198.0" y="344" font-size="20" fill="#0f766e" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    y
+  </text>
+  <line x1="94" y1="359" x2="114" y2="393" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)" />
+  <line x1="198" y1="359" x2="178" y2="393" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)" />
+  <rect x="72" y="395" width="148" height="44" rx="8" fill="#f8fafc" stroke="#c2410c" />
+  <text x="146.0" y="424" font-size="20" fill="#c2410c" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    torch.add
+  </text>
+  <line x1="146" y1="439" x2="146" y2="473" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)" />
+  <rect x="72" y="475" width="148" height="44" rx="8" fill="#f8fafc" stroke="#c2410c" />
+  <text x="146.0" y="504" font-size="20" fill="#c2410c" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    torch.mul
+  </text>
+  <rect x="250" y="475" width="48" height="44" rx="8" fill="#f8fafc" stroke="#0f766e" />
+  <text x="274.0" y="504" font-size="20" fill="#0f766e" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    2
+  </text>
+  <line x1="250" y1="497" x2="222" y2="497" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)" />
+  <line x1="146" y1="519" x2="146" y2="553" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)" />
+  <rect x="72" y="555" width="148" height="44" rx="8" fill="#f8fafc" stroke="#c2410c" />
+  <text x="146.0" y="584" font-size="20" fill="#c2410c" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    .sum()
+  </text>
+  <line x1="146" y1="599" x2="146" y2="633" stroke="#4b5563" stroke-width="1.5" marker-end="url(#arrow)" />
+  <rect x="88" y="635" width="116" height="44" rx="8" fill="#f8fafc" stroke="#1f2937" />
+  <text x="146.0" y="664" font-size="20" fill="#1f2937" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    output
+  </text>
+</svg>
