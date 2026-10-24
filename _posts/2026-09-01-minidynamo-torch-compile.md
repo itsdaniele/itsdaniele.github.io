@@ -87,7 +87,7 @@ _styles: >
 
 <div class="l-body" markdown="1">
 
-_When you run code under `@torch.compile`, a lot happens under the hood: PyTorch intercepts Python bytecode, captures a graph of tensor operations, hands that graph to an optimizing compiler, and caches the result. This article rebuilds the pieces of that system from scratch, with a small implementation that exposes the moving parts._
+_When you run code under `@torch.compile`, a lot happens under the hood: PyTorch intercepts Python bytecode, captures a graph of tensor operations, hands that graph to an optimizing compiler, and caches the result. This article rebuilds the pieces of that system from scratch with [minidynamo](https://github.com/itsdaniele/minidynamo), a small implementation that exposes the moving parts._
 
 Note: _Coding agents generated a good part of the code. I then read the implementation line by line, added tests, wrote benchmark scripts, and used the toy system to build intuition._
 
@@ -1014,3 +1014,5 @@ _The full source code for minidynamo is at [github.com/itsdaniele/minidynamo](ht
 | `examples/inductor_integration.py`   | Plugging into the real Inductor backend                     |
 
 </div>
+
+**[Code on GitHub: itsdaniele/minidynamo](https://github.com/itsdaniele/minidynamo)**
