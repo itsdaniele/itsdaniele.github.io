@@ -56,9 +56,9 @@
 
   <g transform="translate(40, 290)">
     <text x="0" y="0" font-size="10" letter-spacing="0.12em" fill="#737373">WHAT'S GONE</text>
-    <text x="0" y="22" font-size="11" fill="#171717">&#8226; function name (<tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#737373">fn</tspan>) and arg names dissolve into positional placeholders</text>
-    <text x="0" y="42" font-size="11" fill="#171717">&#8226; local variables (<tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#737373">z</tspan>, <tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#737373">w</tspan>) become anonymous edges</text>
+    <text x="0" y="22" font-size="11" fill="#171717">&#8226; function name (<tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#737373">fn</tspan>) is absent; inputs remain named placeholders</text>
+    <text x="0" y="42" font-size="11" fill="#171717">&#8226; local variables (<tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#737373">z</tspan>, <tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#737373">w</tspan>) become graph references</text>
     <text x="0" y="62" font-size="11" fill="#171717">&#8226; Python constants (<tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#2563eb">2</tspan>) are inlined as <tspan font-style="italic">specialized</tspan> arguments</text>
-    <text x="0" y="82" font-size="11" fill="#171717">&#8226; <tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#737373">+</tspan> and <tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#737373">.sum()</tspan> normalize to <tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#171717">torch.add</tspan>, <tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#171717">torch.mul</tspan>, etc.</text>
+    <text x="0" y="82" font-size="11" fill="#171717">&#8226; <tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#737373">+</tspan> maps to <tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#171717">torch.add</tspan>; <tspan font-family="ui-monospace, 'SF Mono', Menlo, monospace" fill="#171717">.sum()</tspan> stays a method call</text>
   </g>
 </svg>

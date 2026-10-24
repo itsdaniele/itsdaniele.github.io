@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "MiniDynamo: A Tiny torch.compile from Scratch"
+title: "minidynamo: A Tiny torch.compile from Scratch"
 description: Rebuilding the core ideas behind torch.compile with a small TorchDynamo-style tracer. (v2, Christensen BALANCED revision)
 date: 2026-09-01 01:00:00+0200
 _styles: >
@@ -72,7 +72,7 @@ Note: _Coding agents generated a good part of the code. I then read the implemen
 
 **TL;DR**
 
-- `torch.compile` is a pipeline: **trace → compile → guard → cache → execute**. This post rebuilds it in ~1,000 lines of readable Python ([mini-dynamo](https://github.com/itsdaniele/torchdynamo-mini)).
+- `torch.compile` is a pipeline: **trace → compile → guard → cache → execute**. This post rebuilds it in ~1,000 lines of readable Python ([minidynamo](https://github.com/itsdaniele/minidynamo)).
 - TorchDynamo captures graphs at the **bytecode level**: it re-implements CPython's interpreter over symbolic values and records tensor operations into a graph (Sections 3–6).
 - **Guards**, the checks on shape, dtype, and device, are the contract deciding when cached compiled code can be reused. A high recompilation rate is the usual reason `torch.compile` disappoints (Section 8).
 - Graph capture alone produces **no speedup** (we measure 1.00x). The wins come from what an optimizing backend like Inductor does with the graph. Our mini graphs can drive the real Inductor to prove it (Section 10).
@@ -105,7 +105,7 @@ Capturing a graph of tensor operations from a Python function is hard. PyTorch w
 
 ### Calling `torch.compile`
 
-![The torch.compile pipeline: first call runs every stage; subsequent calls with matching guards skip straight to EXECUTE.](/assets/img/mini-dynamo/pipeline.svg)
+![The torch.compile pipeline: first call runs every stage; subsequent calls with matching guards skip straight to EXECUTE.](/assets/img/minidynamo/pipeline.svg)
 
 1. **Trace**: Dynamo intercepts the Python frame via PEP 523. Walking the bytecode, it records tensor operations into an FX graph. Much of the surrounding Python stays outside the graph: some values are evaluated concretely, some assumptions become _guards_, and unsupported regions can trigger _graph breaks_. We will see in detail what this means.
 
@@ -121,17 +121,17 @@ Capturing a graph of tensor operations from a Python function is hard. PyTorch w
 
 ### What we'll build
 
-We will build this pipeline as a small, readable Python codebase. Our implementation, [_mini-dynamo_](https://github.com/itsdaniele/torchdynamo-mini), is a deliberately tiny TorchDynamo-style tracer. It captures the same core ideas while leaving out the machinery needed for arbitrary real-world PyTorch programs.
+We will build this pipeline as a small, readable Python codebase. Our implementation, [_minidynamo_](https://github.com/itsdaniele/minidynamo), is a deliberately tiny TorchDynamo-style tracer. It captures the same core ideas while leaving out the machinery needed for arbitrary real-world PyTorch programs.
 
 <aside markdown="1">
 
-**Scope.** Real TorchDynamo handles control flow, nested calls, user-defined classes, graph breaks, dynamic shapes, and hundreds of Python opcodes. Mini-dynamo handles straight-line tensor computations over positional tensor arguments. Inside the function body it supports constants, basic arithmetic, an explicit list of common `torch` functions, and positionally-called tensor methods. The tests focus on methods such as `.sum()` and `.mean()`. We skip PEP 523 and everything built on it: real Dynamo hooks CPython frame evaluation, re-implementing a large chunk of Python execution logic in Python. We also skip AOTAutograd and training-graph lowering; the examples focus on forward computations.
+**Scope.** Real TorchDynamo handles control flow, nested calls, user-defined classes, graph breaks, dynamic shapes, and hundreds of Python opcodes. minidynamo handles straight-line tensor computations over positional tensor arguments. Inside the function body it supports constants, basic arithmetic, an explicit list of common `torch` functions, and positionally-called tensor methods. The tests focus on methods such as `.sum()` and `.mean()`. We skip PEP 523 and everything built on it: real Dynamo hooks CPython frame evaluation, re-implementing a large chunk of Python execution logic in Python. We also skip AOTAutograd and training-graph lowering; the examples focus on forward computations.
 
 </aside>
 
 <aside markdown="1">
 
-**Runtime requirements.** The repository pins Python `3.10.x` and PyTorch `2.10.0`. The narrow range is intentional: CPython bytecode changes across releases, and this educational interpreter implements only the Python 3.10 opcodes used in the examples. The public `@mini_dynamo.compile` decorator likewise accepts only positional tensor arguments. Runtime non-tensor arguments and keyword arguments are deliberately out of scope.
+**Runtime requirements.** The repository pins Python `3.10.x` and PyTorch `2.10.0`. The narrow range is intentional: CPython bytecode changes across releases, and this educational interpreter implements only the Python 3.10 opcodes used in the examples. The public `@minidynamo.compile` decorator likewise accepts only positional tensor arguments. Runtime non-tensor arguments and keyword arguments are deliberately out of scope.
 
 </aside>
 
@@ -139,7 +139,7 @@ We will build this pipeline as a small, readable Python codebase. Our implementa
 
 ## 2. Architecture: The Five Components
 
-Mini-dynamo has five pipeline stages spread across six small modules:
+minidynamo has five pipeline stages spread across six small modules:
 
 ```
               fn(x, y) + example args
@@ -173,11 +173,11 @@ Mini-dynamo has five pipeline stages spread across six small modules:
    graph.py         examples/ → Inductor
 ```
 
-The package backend in `mini_dynamo/compiler.py` implements only the Python and JIT paths exposed by `@mini_dynamo.compile`. The Inductor path appears later as an example script: mini graph to FX, ATen lowering, then a private Inductor entry point.
+The package backend in `minidynamo/compiler.py` implements only the Python and JIT paths exposed by `@minidynamo.compile`. The Inductor path appears later as an example script: mini graph to FX, ATen lowering, then a private Inductor entry point.
 
 The table maps each component to its TorchDynamo counterpart:
 
-| Mini-dynamo               | Real TorchDynamo                                                | Role                                                                                                                                                                                                                                                                                                           |
+| minidynamo                | Real TorchDynamo                                                | Role                                                                                                                                                                                                                                                                                                           |
 | :------------------------ | :-------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `symbolic_interpreter.py` | `InstructionTranslator` (~5,000 lines in `symbolic_convert.py`) | Walk bytecodes, build the graph. The heart of the system.                                                                                                                                                                                                                                                      |
 | `variable_tracker.py`     | `VariableTracker` hierarchy (200+ subclasses across ~20 files)  | Symbolic values on the interpreter's stack. Tell the interpreter what kind of thing each value is (tensor? constant? torch function?) so it can decide whether to record a graph node or evaluate concretely.                                                                                                  |
@@ -308,7 +308,7 @@ Graph:
   return sum_0
 ```
 
-![The same function before and after tracing. Function name, local variables, and Python operators dissolve into a pure data-flow DAG over tensor ops.](/assets/img/mini-dynamo/graph-ir.svg)
+![The same function before and after tracing. Function name, local variables, and Python operators dissolve into a pure data-flow DAG over tensor ops.](/assets/img/minidynamo/graph-ir.svg)
 
 Notice the `2` in `torch.mul(add_0, 2)`: a plain Python integer, not a `Node`. Constants are inlined into the args of the operations that consume them.
 
@@ -316,7 +316,7 @@ Notice the `2` in `torch.mul(add_0, 2)`: a plain Python integer, not a `Node`. C
 
 ## 6. The Symbolic Interpreter
 
-The `SymbolicInterpreter` ties the previous pieces together. It walks the bytecode with `VariableTracker`s on its stack, and the `Graph` grows as a side effect. Everything else in mini-dynamo serves this loop.
+The `SymbolicInterpreter` ties the previous pieces together. It walks the bytecode with `VariableTracker`s on its stack, and the `Graph` grows as a side effect. Everything else in minidynamo serves this loop.
 
 When you run a Python function normally, CPython executes each instruction on real objects: integers get added, methods get invoked. We use the same bytecode and stack discipline, but we care about the _shape_ of the computation rather than the return value. We re-implement enough of CPython's interpreter to produce a **graph**.
 
@@ -334,7 +334,7 @@ Picture two interpreters running side by side on the same bytecode, one real and
 | **Unsupported opcode**          | Executes it                              | Raises `NotImplementedError`                                                             |
 | **Final output**                | A return value                           | A finished `Graph`                                                                       |
 
-CPython operates on values; mini-dynamo operates on _descriptions_ of values. At every bytecode step, the symbolic interpreter makes one decision: **record** the operation into the graph, or **evaluate** it concretely from what it already knows. Repeated across instructions, that decision produces the captured graph.
+CPython operates on values; minidynamo operates on _descriptions_ of values. At every bytecode step, the symbolic interpreter makes one decision: **record** the operation into the graph, or **evaluate** it concretely from what it already knows. Repeated across instructions, that decision produces the captured graph.
 
 ### The Three Pieces of State
 
@@ -423,7 +423,7 @@ def run(self):
 
 Trace `fn(x, y)`, where `fn` computes `z = x + y; w = z * 2; return w.sum()`. The first four instructions show bytecode, stack, and graph evolving in lockstep:
 
-![Tracing in motion: only the BINARY_ADD step actually touches the graph. Every other instruction is plumbing.](/assets/img/mini-dynamo/tracing.svg)
+![Tracing in motion: only the BINARY_ADD step actually touches the graph. Every other instruction is plumbing.](/assets/img/minidynamo/tracing.svg)
 
 The full trace, including the multiplication and the method call:
 
@@ -481,7 +481,7 @@ def _handle_call(self, fn, args):
     raise RuntimeError(f"Don't know how to call {type(fn).__name__}")
 ```
 
-The design has three paths. Known tensor operations are traced, and opaque global callables with tensor inputs can also become `call_function` nodes. Pure-Python work on supported constants is simply evaluated. Outside that narrow subset mini-dynamo still raises, especially for unsupported bytecodes, keyword calls, and non-tensor returns. Real TorchDynamo goes much further, guarding on Python values and even resuming after graph breaks. A _graph break_ is Dynamo's escape hatch for the "don't know how to handle this" case. The graph so far gets compiled, the unsupported bit runs in plain Python, and a fresh trace starts from the next instruction. A single Python function can become several compiled graphs, stitched together with plain eager code in between.
+The design has three paths. Known tensor operations are traced, and opaque global callables with tensor inputs can also become `call_function` nodes. Pure-Python work on supported constants is simply evaluated. Outside that narrow subset minidynamo still raises, especially for unsupported bytecodes, keyword calls, and non-tensor returns. Real TorchDynamo goes much further, guarding on Python values and even resuming after graph breaks. A _graph break_ is Dynamo's escape hatch for the "don't know how to handle this" case. The graph so far gets compiled, the unsupported bit runs in plain Python, and a fresh trace starts from the next instruction. A single Python function can become several compiled graphs, stitched together with plain eager code in between.
 
 <aside markdown="1">
 
@@ -553,7 +553,7 @@ def compile_graph(graph):
     # the source string into a code object; `exec()` runs that code with
     # `closure_vars` as its globals. The side effect is that `compiled_fn`
     # is now defined inside `closure_vars`, ready to be pulled back out.
-    code = compile(source, "<mini-dynamo-compiled>", "exec")
+    code = compile(source, "<minidynamo-compiled>", "exec")
     exec(code, closure_vars)
     return closure_vars["compiled_fn"], source
 ```
@@ -624,7 +624,7 @@ print(fn._cache[0][0].failing_guards(a3, b3))
 
 The mechanism is small: the first call pays the compile tax, identical calls pay only guard checks, and the cache grows one entry per signature. Section 9 walks one function through exactly this life cycle. A function seeing a different shape on every call misses every time, turning `@compile` into pure overhead. That is why **recompilation rate** is the first thing to check when `torch.compile` fails to speed up a workload.
 
-![One cache scan: the wrapper walks entries top-to-bottom and runs the first whose guards all pass. Entries further down never get checked on a hit.](/assets/img/mini-dynamo/cache-and-guards.svg)
+![One cache scan: the wrapper walks entries top-to-bottom and runs the first whose guards all pass. Entries further down never get checked on a hit.](/assets/img/minidynamo/cache-and-guards.svg)
 
 Real Dynamo makes the same trade-off:
 
@@ -643,7 +643,7 @@ Real Dynamo makes the same trade-off:
 
 ## 9. The `compile()` Decorator
 
-The top-level API ties together all five pipeline stages. The snippet below strips the decorator down to its cache loop. The real `mini_dynamo/__init__.py` adds backend selection, a backend-name check, and rejection of non-tensor runtime arguments:
+The top-level API ties together all five pipeline stages. The snippet below strips the decorator down to its cache loop. The real `minidynamo/__init__.py` adds backend selection, a backend-name check, and rejection of non-tensor runtime arguments:
 
 ```python
 def compile(fn=None, *, backend="python"):
@@ -655,7 +655,7 @@ def compile(fn=None, *, backend="python"):
     @functools.wraps(fn)
     def wrapper(*args):
         if not all(isinstance(arg, torch.Tensor) for arg in args):
-            raise TypeError("mini_dynamo.compile only supports tensor arguments")
+            raise TypeError("minidynamo.compile only supports tensor arguments")
 
         # Fast path: walk the cache and run the first entry whose guards
         # all pass on the current args. This is the path every steady-state
@@ -684,9 +684,9 @@ The previous sections built each component in isolation: the interpreter, the gr
 
 ```python
 import torch
-import mini_dynamo
+import minidynamo
 
-@mini_dynamo.compile
+@minidynamo.compile
 def fn(x, y):
     z = x + y
     w = z * 2
@@ -807,7 +807,7 @@ The numbers follow that pattern, though the exact outcome depends on backend and
 
 ```
 Eager (original):             268.9 us
-mini_dynamo (python):         267.9 us   (1.00x -- mostly noise)
+minidynamo (python):         267.9 us   (1.00x -- mostly noise)
 torch.compile (inductor):      68.0 us   (3.95x)
 ```
 
@@ -816,14 +816,14 @@ The CUDA benchmark needs one subtle precaution: reset Dynamo between per-shape `
 ```
 Tensor size: 2048x2048
 Eager:                       160.4 us
-mini_dynamo (python):        160.5 us   (1.00x)
-mini_dynamo (jit):            33.6 us   (4.78x)
+minidynamo (python):        160.5 us   (1.00x)
+minidynamo (jit):            33.6 us   (4.78x)
 torch.compile (inductor):     30.6 us   (5.25x)
 ```
 
 Treat these as measurements of this repository's toy benchmarks, not universal results. The stable lesson is narrower and more useful. The Python backend barely moves the needle. The JIT backend can remove Python↔C++ boundary overhead without fusing kernels. Inductor is the only path here that can change the kernel structure. Whether that wins depends on operation mix, tensor size, device backend, and PyTorch build.
 
-![Where the time goes for 11 chained elementwise ops. When Inductor wins, the win comes from collapsing multiple launches into fewer fused kernels.](/assets/img/mini-dynamo/cost-decomposition.svg)
+![Where the time goes for 11 chained elementwise ops. When Inductor wins, the win comes from collapsing multiple launches into fewer fused kernels.](/assets/img/minidynamo/cost-decomposition.svg)
 
 The Python backend's result sits within noise. We saved a handful of bytecodes per op, savings the lower layers dwarf.
 
@@ -837,17 +837,17 @@ When Inductor wins, the speedup comes from a different layer. It operates _below
 - **Launch overhead collapse.** Even after fusion, each launch still costs microseconds. When the same shapes recur, as in a training loop's steady state, CUDA graph integration records the launches once for replay as one stream op.
 - **Memory planning.** With a full graph in hand, Inductor plans intermediate buffers once, avoiding the per-op allocator churn of eager.
 
-None of these live in our mini-dynamo backend. They require the graph as input. They attack the biggest rows of the cost table: the dispatcher, the launch, and the kernel itself, where the microseconds live.
+None of these live in our minidynamo backend. They require the graph as input. They attack the biggest rows of the cost table: the dispatcher, the launch, and the kernel itself, where the microseconds live.
 
 ### Dynamo Captures, Inductor Optimizes
 
-**Dynamo and Inductor solve different problems.** Dynamo captures the graph, bringing almost no performance gain on its own. Inductor optimizes the graph, the source of the meaningful speedup in many deep-learning workloads. The bytecode tracer exists to hand an optimizing backend a graph it can fuse and lower. Our mini-dynamo replaces only the Dynamo part. Because we produce a compatible graph, the real Inductor backend can plug in, letting us measure the backend's behavior directly.
+**Dynamo and Inductor solve different problems.** Dynamo captures the graph, bringing almost no performance gain on its own. Inductor optimizes the graph, the source of the meaningful speedup in many deep-learning workloads. The bytecode tracer exists to hand an optimizing backend a graph it can fuse and lower. Our minidynamo replaces only the Dynamo part. Because we produce a compatible graph, the real Inductor backend can plug in, letting us measure the backend's behavior directly.
 
 The path runs from our graph to an `fx.GraphModule`, then through ATen lowering, and finally into `compile_fx_inner`, Inductor's internal entry point. This is a private PyTorch API; the repository therefore pins PyTorch `2.10.0`, treating the integration as educational rather than stable surface area. For the straight-line programs covered by the parity tests, this produces the same ATen graph as real Dynamo's export path. The generated Inductor kernels match too, on the tested backend. The tests validate that narrow claim, nothing broader about arbitrary programs, devices, or configurations.
 
 ```python
-def mini_dynamo_to_inductor(fn, *example_inputs):
-    # 1. Trace with our symbolic interpreter, producing a mini-dynamo Graph
+def minidynamo_to_inductor(fn, *example_inputs):
+    # 1. Trace with our symbolic interpreter, producing a minidynamo Graph
     #    whose nodes call torch.add, torch.mul, etc.
     graph = SymbolicInterpreter(fn, example_inputs).run()
 
@@ -878,7 +878,7 @@ def mini_dynamo_to_inductor(fn, *example_inputs):
 
 ## 11. What We Left Out
 
-Mini-dynamo demonstrates the architecture of TorchDynamo. Real Dynamo is a vastly more complex system. Here are the most important gaps.
+minidynamo demonstrates the architecture of TorchDynamo. Real Dynamo is a vastly more complex system. Here are the most important gaps.
 
 ### PEP 523 Frame Evaluation
 
@@ -916,7 +916,7 @@ Each component reduces to something familiar: a CPython emulator, an IR, a code 
 
 <div class="l-body" markdown="1">
 
-_The full source code for mini-dynamo is at [github.com/itsdaniele/torchdynamo-mini](https://github.com/itsdaniele/torchdynamo-mini). Every module is heavily commented, designed to be read linearly._
+_The full source code for minidynamo is at [github.com/itsdaniele/minidynamo](https://github.com/itsdaniele/minidynamo). Every module is heavily commented, designed to be read linearly._
 
 </div>
 
@@ -926,17 +926,17 @@ _The full source code for mini-dynamo is at [github.com/itsdaniele/torchdynamo-m
 
 ## Appendix: File Map
 
-| File                                  | Purpose                                                     |
-| :------------------------------------ | :---------------------------------------------------------- |
-| `mini_dynamo/__init__.py`             | The `compile()` decorator -- ties together all five stages  |
-| `mini_dynamo/symbolic_interpreter.py` | The bytecode walker -- CPython emulator on VariableTrackers |
-| `mini_dynamo/variable_tracker.py`     | Four symbolic value types                                   |
-| `mini_dynamo/graph.py`                | The computation graph IR (`Node` + `Graph`)                 |
-| `mini_dynamo/compiler.py`             | Code generation backends (Python + JIT)                     |
-| `mini_dynamo/guards.py`               | Guard creation and checking                                 |
-| `examples/benchmark.py`               | Performance analysis: where speedup comes from              |
-| `examples/benchmark_mps.py`           | GPU benchmark: Python vs JIT vs Inductor                    |
-| `examples/benchmark_transformers.py`  | Transformer-style fusion pattern benchmark                  |
-| `examples/inductor_integration.py`    | Plugging into the real Inductor backend                     |
+| File                                 | Purpose                                                     |
+| :----------------------------------- | :---------------------------------------------------------- |
+| `minidynamo/__init__.py`             | The `compile()` decorator -- ties together all five stages  |
+| `minidynamo/symbolic_interpreter.py` | The bytecode walker -- CPython emulator on VariableTrackers |
+| `minidynamo/variable_tracker.py`     | Four symbolic value types                                   |
+| `minidynamo/graph.py`                | The computation graph IR (`Node` + `Graph`)                 |
+| `minidynamo/compiler.py`             | Code generation backends (Python + JIT)                     |
+| `minidynamo/guards.py`               | Guard creation and checking                                 |
+| `examples/benchmark.py`              | Performance analysis: where speedup comes from              |
+| `examples/benchmark_mps.py`          | GPU benchmark: Python vs JIT vs Inductor                    |
+| `examples/benchmark_transformers.py` | Transformer-style fusion pattern benchmark                  |
+| `examples/inductor_integration.py`   | Plugging into the real Inductor backend                     |
 
 </div>
