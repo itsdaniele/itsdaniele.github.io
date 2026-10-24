@@ -41,6 +41,37 @@ _styles: >
     display: block;
   }
 
+  #markdown-content .minidynamo-figure picture,
+  #markdown-content .minidynamo-figure figcaption {
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  #markdown-content .compile-animation {
+    margin: 2rem 0;
+  }
+
+  #markdown-content .compile-animation iframe {
+    display: block;
+    width: 100%;
+    height: 730px;
+    border: 1px solid var(--global-divider-color);
+    border-radius: 14px;
+  }
+
+  #markdown-content .compile-animation figcaption {
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 700px) {
+    #markdown-content .compile-animation iframe {
+      height: 950px;
+    }
+  }
+
   #markdown-content .minidynamo-figure img {
     display: block;
     width: 100%;
@@ -60,7 +91,7 @@ _styles: >
   @media (max-width: 700px) {
     #markdown-content .minidynamo-figure picture,
     #markdown-content .minidynamo-figure figcaption {
-      max-width: 420px;
+      max-width: 340px;
       margin-left: auto;
       margin-right: auto;
     }
@@ -130,12 +161,11 @@ Capturing a graph of tensor operations from a Python function is hard. PyTorch w
 
 ### Calling `torch.compile`
 
-<figure class="minidynamo-figure">
-  <picture>
-    <source media="(max-width: 700px)" srcset="/assets/img/minidynamo/pipeline-mobile.svg">
-    <img src="/assets/img/minidynamo/pipeline.svg" alt="The first call traces, compiles, builds guards, caches, and executes. Later calls check guards and reuse the matching compiled function.">
-  </picture>
+<figure class="compile-animation" id="compile-walkthrough">
+  <iframe id="minidynamo-flow" src="/assets/minidynamo-flow/index.html" title="Step through minidynamo: first call, cache hit, and recompilation" loading="lazy"></iframe>
+  <figcaption>This illustrates minidynamo’s Python backend; animation speed does not represent execution time. <a href="/assets/minidynamo-flow/index.html" target="_blank" rel="noopener">Open the animation</a>.</figcaption>
 </figure>
+<script src="/assets/minidynamo-flow/embed.js" defer></script>
 
 1. **Trace**: Dynamo intercepts the Python frame via PEP 523 and walks the bytecode. Tensor operations are recorded into an FX graph. Much of the surrounding Python logic is handled outside the graph: some values are evaluated concretely, some assumptions become _guards_, and unsupported regions can trigger _graph breaks_. We will see in detail what this means.
 
