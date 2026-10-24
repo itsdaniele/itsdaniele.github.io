@@ -123,7 +123,7 @@ We will build this pipeline as a small, readable Python codebase. Our implementa
 
 <aside markdown="1">
 
-**Scope.** Real TorchDynamo handles control flow, nested function calls, user-defined classes, graph breaks, dynamic shapes, and many Python opcodes. Mini-dynamo handles straight-line tensor computations over positional tensor arguments, constants in the function body, basic arithmetic, an explicit set of common `torch` functions, and tensor methods that can be called with positional arguments during tracing. The tests cover methods such as `.sum()` and `.mean()`. Arbitrary helpers, in-place operations, random operations, and tensor-to-Python data conversions are rejected. We skip PEP 523 and the machinery built on top of it: real Dynamo hooks into CPython frame evaluation and re-implements a large chunk of Python execution logic in Python. We also skip AOTAutograd and training-graph lowering; the examples focus on forward computations.
+**Scope.** Real TorchDynamo handles control flow, nested function calls, user-defined classes, graph breaks, dynamic shapes, and many Python opcodes. Mini-dynamo handles straight-line tensor computations over plain, strided tensors passed as positional arguments, constants in the function body, basic arithmetic, an explicit set of common `torch` functions, and tensor methods that can be called with positional arguments during tracing. The tests cover methods such as `.sum()` and `.mean()`. Custom tensor attributes, arbitrary helpers, in-place operations, random operations, and tensor-to-Python data conversions are rejected. We skip PEP 523 and the machinery built on top of it: real Dynamo hooks into CPython frame evaluation and re-implements a large chunk of Python execution logic in Python. We also skip AOTAutograd and training-graph lowering; the examples focus on forward computations.
 
 </aside>
 
@@ -373,6 +373,7 @@ def __init__(self, fn, example_args):
     self.stack = []     # Mirrors CPython's value stack, but holds VariableTrackers
     self.locals = {}    # Mirrors CPython's locals: name -> VariableTracker
     self.globals = fn.__globals__  # Needed later for LOAD_GLOBAL (e.g. `torch`)
+    self.builtins = fn.__builtins__  # Use the function's own builtin namespace
     self.guards = GuardSet.from_example_inputs(example_args)
 
     # fn.__code__ is the compiled CPython code object behind a function.
@@ -522,7 +523,7 @@ def compile_graph(graph):
         if node.op == "placeholder":
             continue  # Already covered by the function signature above.
         elif node.op == "call_function":
-            # Give this op a unique closure key, stash its target callable,
+            # Give this op a unique namespace key, stash its target callable,
             # and emit a single line that invokes it.
             closure_key = bind(node.target, f"__fn_{node.name}")
             args_str = format_args(node.args, node.kwargs)
@@ -596,7 +597,7 @@ def from_example_inputs(cls, example_args):
                 f"args[{i}].shape == {expected_shape}",
             ))
             # ... similarly for dtype, device, layout, and gradient metadata
-    # ... plus a guard on grad/inference/autocast modes and default dtype
+    # ... plus a guard on execution modes, default dtype, and CUDA’s current device
     return guard_set
 ```
 
@@ -604,7 +605,7 @@ On each call, a cache entry's guards are checked until one fails or all pass. If
 
 ### Checking and Debugging Guards
 
-`GuardSet.from_example_inputs` checks shape, dtype, device, strides, storage offset, gradient requirements, and conjugate/negative view flags, plus grad/inference/autocast modes and the default dtype. The interpreter adds guards for globals and accessed `torch` attributes; the wrapper also guards the function's code object. On every call, the wrapper runs the cached guard sets against the new arguments. Each guard is a tiny lambda (e.g. `tuple(args[0].shape) == (3, 4)`), so checking a specialization incurs Python overhead. And when a call misses the cache, you can ask the guard set _why_ — the wrapper exposes its cache as `fn._cache`, a list of `(guard_set, compiled_fn)` pairs:
+`GuardSet.from_example_inputs` checks shape, dtype, device, strides, storage offset, gradient requirements, and conjugate/negative view flags, plus grad/inference/autocast modes, the default dtype, and CUDA’s current device. The interpreter adds guards for globals and accessed `torch` attributes; the wrapper also guards the function's code object. On every call, the wrapper runs the cached guard sets against the new arguments. Each guard is a tiny lambda (e.g. `tuple(args[0].shape) == (3, 4)`), so checking a specialization incurs Python overhead. And when a call misses the cache, you can ask the guard set _why_ — the wrapper exposes its cache as `fn._cache`, a list of `(guard_set, compiled_fn)` pairs:
 
 ```python
 # Wrap the function from Section 5 and trace it with (3, 4) tensors:
@@ -805,25 +806,25 @@ The work behind an elementwise op in eager PyTorch on a GPU includes the followi
 | Kernel submission onto the CUDA / MPS stream       | The host runtime and GPU driver |
 | The kernel itself                                  | The GPU                         |
 
-The first two rows are what most people mean when they say "Python overhead." Their share of total time depends on the workload. Our Python backend only touches those: it pre-resolves function lookups into the generated function's namespace so explicit `torch` function calls can avoid attribute lookup. Nothing below that line changes. Every op still boxes arguments into PyObjects, still traverses libtorch's dispatch key logic, still submits the operation's kernels. CUDA submission is asynchronous; the host need not wait for each kernel to finish.
+The first two rows are what most people mean when they say "Python overhead." Their share of total time depends on the workload. Our Python backend only touches those: it pre-resolves function lookups into the generated function's namespace so explicit `torch` function calls can avoid attribute lookup. Nothing below that line changes. Every op still enters a Python binding, traverses libtorch's dispatch key logic, and submits the operation's kernels. CUDA submission is asynchronous; the host need not wait for each kernel to finish.
 
 The benchmark numbers follow that pattern, but the exact outcome is backend- and shape-dependent. The verified CUDA run used one NVIDIA H200, Python 3.10.20, PyTorch 2.10.0+cu128, and CUDA 12.8. The workload is eleven elementwise operations followed by a sum on two square float32 tensors.
 
-These are microseconds per call: the median of seven randomized-order trials of 500 calls, after 50 warmup calls. All variants use inference mode. Compilation is excluded, synchronization brackets each trial, and CUDA graphs are disabled in both Inductor paths. This measures amortized wall time including host dispatch, not isolated kernel latency. The `torch.compile` path uses `fullgraph=True, dynamic=False`.
+These are microseconds per call: the median of fifteen randomized-order trials of 1,000 calls, after 500 warmup calls. All variants use inference mode. Compilation is excluded, synchronization brackets each trial, and CUDA graphs are disabled in both Inductor paths. This measures amortized wall time including host dispatch, not isolated kernel latency. The `torch.compile` path uses `fullgraph=True, dynamic=False`.
 
 | Callable                            | 32 × 32 | 2048 × 2048 |
 | :---------------------------------- | ------: | ----------: |
-| Eager PyTorch                       |    57.1 |       129.6 |
-| Generated Python, no guards         |    56.7 |       129.7 |
-| Mini-dynamo Python, with guards     |    73.6 |       129.8 |
-| TorchScript, no guards              |    12.7 |        29.4 |
-| Mini-dynamo JIT, with guards        |    28.4 |        36.5 |
-| Mini-dynamo + Inductor, with guards |    28.0 |        41.4 |
-| `torch.compile`, static shapes      |    37.4 |        53.3 |
+| Eager PyTorch                       |    62.1 |       129.4 |
+| Generated Python, no guards         |    61.7 |       129.3 |
+| Mini-dynamo Python, with guards     |    80.3 |       129.4 |
+| TorchScript, no guards              |    13.9 |        29.4 |
+| Mini-dynamo JIT, with guards        |    32.2 |        40.2 |
+| Mini-dynamo + Inductor, with guards |    32.0 |        44.6 |
+| `torch.compile`, static shapes      |    40.2 |        54.8 |
 
-A separate profiler pass found 12 compute kernels for eager and generated Python at 2048 × 2048, and 2 each for TorchScript and the two Inductor paths. **TorchScript fused the elementwise chain too**; it is not an unfused baseline. The counts exclude memory sets and profiler annotation ranges.
+A separate profiler pass, checked across two captured calls after warming up the collector, found 12 compute kernels for eager and generated Python at 2048 × 2048, and 2 each for TorchScript and the two Inductor paths. **TorchScript fused the elementwise chain too**; it is not an unfused baseline. The counts exclude memory sets and profiler annotation ranges.
 
-Treat these as measurements of this repository's toy benchmark, not universal benchmark results. In this run JIT was faster than either Inductor path. The wrappers also have different costs and capabilities; subtracting raw and guarded timings does not isolate guard latency, because host checks can overlap earlier GPU work. The [benchmark script](https://github.com/itsdaniele/torchdynamo-mini/blob/main/examples/benchmark_publication.py) and [raw trials and profiler events](https://github.com/itsdaniele/torchdynamo-mini/blob/main/benchmarks/h200-publication.json) record the configuration and source hashes. The same CUDA allocation passed 227 tests, with 4 MPS-only tests skipped.
+Treat these as measurements of this repository's toy benchmark, not universal benchmark results. The raw JIT callable was fastest in both columns. The wrappers also have different costs and capabilities; subtracting raw and guarded timings does not isolate guard latency, because host checks can overlap earlier GPU work. The [benchmark script](https://github.com/itsdaniele/torchdynamo-mini/blob/main/examples/benchmark_publication.py) and [raw trials and profiler events](https://github.com/itsdaniele/torchdynamo-mini/blob/main/benchmarks/h200-publication-final.json) record the configuration and source hashes. Small-input trials showed host-side variation; the raw record includes every trial and its range. The same CUDA allocation passed 244 tests, with 4 MPS-only tests skipped.
 
 ![Schematic cost categories, not measured timings or proportions. The H200 run launched 12 compute kernels eagerly and 2 with Inductor.](/assets/img/mini-dynamo/cost-decomposition.svg)
 
@@ -843,9 +844,13 @@ Our Python backend implements none of these; the optional JIT backend can apply 
 
 ### Dynamo Captures, Inductor Optimizes
 
-**Dynamo and Inductor solve different problems.** Dynamo captures the graph; our Python replay backend shows why capture alone need not bring a performance gain. Inductor optimizes the graph; in many deep-learning workloads, that is where the meaningful speedup comes from. The bytecode tracer exists to hand an optimizing backend a graph it can fuse, schedule, and lower. Our mini-dynamo replaces only the Dynamo part. Because we produce a compatible graph, we can plug in the _real_ Inductor backend and measure the backend's behavior directly:
+**Dynamo and Inductor solve different problems.** Dynamo captures the graph; our Python replay backend shows why capture alone need not bring a performance gain. Inductor optimizes the graph; in many deep-learning workloads, that is where the meaningful speedup comes from. The bytecode tracer exists to hand an optimizing backend a graph it can fuse, schedule, and lower. Mini-dynamo supplies the graph-capture part. Because we produce a compatible graph, we can plug in the _real_ Inductor backend and measure the backend's behavior directly:
 
-We can convert our mini-dynamo graph into an `fx.GraphModule`, lower it to ATen ops, and pass it directly to `compile_fx_inner`, Inductor's internal entry point. This is a private PyTorch API, so the repository pins PyTorch `2.10.0` and treats the integration as educational rather than stable public surface area. For four small CPU programs covered by the parity tests, this produces matching ATen graphs and generated C++ kernel bodies when both our capture and real Dynamo's export path use the same subsequent `make_fx` and `compile_fx_inner` calls. The tests validate that narrow claim, not general equivalence across arbitrary PyTorch programs, devices, or Inductor configurations. This route bypasses AOTAutograd, including its backward-graph construction and functionalization; it is an inference-only bridge, not the complete `torch.compile` pipeline. The wrapper checks its assumptions and raises on a mismatch rather than recompiling.
+We can convert our mini-dynamo graph into an `fx.GraphModule`, lower it to ATen ops, and pass it directly to `compile_fx_inner`, Inductor's internal entry point. This is a private PyTorch API, so the repository pins PyTorch `2.10.0` and treats the integration as educational rather than stable public surface area.
+
+For four small CPU programs covered by the parity tests, this produces matching ATen graphs and generated C++ kernel bodies when both our capture and real Dynamo's export path use the same subsequent `make_fx` and `compile_fx_inner` calls. The CUDA tests also compare complete ATen graphs and Triton source for those four programs at 32 × 32 and the longer chain at 2048 × 2048. The [saved CUDA graph and kernels](https://github.com/itsdaniele/torchdynamo-mini/blob/main/benchmarks/h200-inductor-evidence.json) show the two reduction kernels generated for the large chain. These tests validate the shared lowering path, not general equivalence across arbitrary PyTorch programs, devices, or Inductor configurations.
+
+This route bypasses AOTAutograd, including its backward-graph construction, functionalization, and decomposition pipeline; it is an inference-only bridge, not the complete `torch.compile` pipeline. Some operations our tracer accepts, such as a device-changing `.to()` call, can still fail in this direct backend. The wrapper checks its assumptions and raises on a mismatch rather than recompiling.
 
 ```python
 def mini_dynamo_to_inductor(fn, *example_inputs):
