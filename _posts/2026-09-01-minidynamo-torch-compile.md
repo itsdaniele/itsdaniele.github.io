@@ -721,14 +721,6 @@ A separate profiler pass, checked across two captured calls after warming up the
 
 Treat these as measurements of this repository's toy benchmark, not universal benchmark results. The raw JIT callable was fastest in both columns. The wrappers also have different costs and capabilities; subtracting raw and guarded timings does not isolate guard latency, because host checks can overlap earlier GPU work. The [benchmark script](https://github.com/itsdaniele/minidynamo/blob/main/examples/benchmark_publication.py) and [raw trials and profiler events](https://github.com/itsdaniele/minidynamo/blob/main/benchmarks/h200-publication.json) record the configuration and source hashes. Small-input trials showed host-side variation; the raw record includes every trial and its range. The same CUDA allocation passed 244 tests, with 4 MPS-only tests skipped.
 
-<figure class="minidynamo-figure">
-  <picture>
-    <source media="(max-width: 700px)" srcset="/assets/img/minidynamo/cost-decomposition-mobile.svg">
-    <img src="/assets/img/minidynamo/cost-decomposition.svg" alt="The 2048 × 2048 H200 benchmark launches 12 compute kernels eagerly and 2 with Inductor.">
-  </picture>
-  <figcaption>Each box is one compute kernel; widths do not represent time.</figcaption>
-</figure>
-
 The raw Python backend's result is within noise; the guarded wrapper also adds overhead that is visible on the small input.
 
 The JIT backend's wins, when they appear, do _not_ come from bytecode dispatch savings. `torch.jit.trace` wraps the generated function into a single TorchScript graph call, so from Python's point of view the whole chain becomes one `call into C++`. Python drops out of the loop between ops, and some of the per-op dispatcher and Python↔C++ boundary-crossing work gets amortized. TorchScript can also fuse kernels, as the profiler shows here, so the measured gain cannot be attributed solely to host overhead.
