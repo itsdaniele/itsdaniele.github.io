@@ -55,7 +55,7 @@ _styles: >
   #markdown-content .compile-animation iframe {
     display: block;
     width: 100%;
-    height: 730px;
+    height: 435px;
     border: 1px solid var(--global-divider-color);
     border-radius: 14px;
   }
@@ -68,7 +68,7 @@ _styles: >
 
   @media (max-width: 700px) {
     #markdown-content .compile-animation iframe {
-      height: 950px;
+      height: 455px;
     }
   }
 
@@ -162,8 +162,8 @@ Capturing a graph of tensor operations from a Python function is hard. PyTorch w
 ### Calling `torch.compile`
 
 <figure class="compile-animation" id="compile-walkthrough">
-  <iframe id="minidynamo-flow" src="/assets/minidynamo-flow/index.html" title="Step through minidynamo: first call, cache hit, and recompilation" loading="lazy"></iframe>
-  <figcaption>This illustrates minidynamo’s Python backend; animation speed does not represent execution time. <a href="/assets/minidynamo-flow/index.html" target="_blank" rel="noopener">Open the animation</a>.</figcaption>
+  <iframe id="minidynamo-flow" src="/assets/minidynamo-flow/index.html?v=2" title="Inside minidynamo: the first call and a cached rerun" loading="lazy"></iframe>
+  <figcaption>This illustrates minidynamo’s Python backend; animation speed does not represent execution time. <a href="/assets/minidynamo-flow/index.html?v=2" target="_blank" rel="noopener">Open the animation</a>.</figcaption>
 </figure>
 <script src="/assets/minidynamo-flow/embed.js" defer></script>
 
