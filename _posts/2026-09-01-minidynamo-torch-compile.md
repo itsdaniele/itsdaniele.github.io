@@ -33,10 +33,37 @@ _styles: >
     margin: 3.5rem 0;
   }
 
-  #markdown-content img {
+  #markdown-content .minidynamo-figure {
+    margin: 2.5rem 0;
+  }
+
+  #markdown-content .minidynamo-figure picture {
     display: block;
-    max-width: min(100%, 860px);
-    margin: 2.75rem auto 3rem;
+  }
+
+  #markdown-content .minidynamo-figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    margin: 0;
+    border-radius: 10px;
+  }
+
+  #markdown-content .minidynamo-figure figcaption {
+    margin-top: 0.75rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--global-text-color);
+  }
+
+  @media (max-width: 700px) {
+    #markdown-content .minidynamo-figure picture,
+    #markdown-content .minidynamo-figure figcaption {
+      max-width: 420px;
+      margin-left: auto;
+      margin-right: auto;
+    }
   }
 
   #markdown-content table,
@@ -103,7 +130,12 @@ Capturing a graph of tensor operations from a Python function is hard. PyTorch w
 
 ### Calling `torch.compile`
 
-![The torch.compile pipeline: first call runs every stage; subsequent calls with matching guards skip straight to EXECUTE.](/assets/img/minidynamo/pipeline.svg)
+<figure class="minidynamo-figure">
+  <picture>
+    <source media="(max-width: 700px)" srcset="/assets/img/minidynamo/pipeline-mobile.svg">
+    <img src="/assets/img/minidynamo/pipeline.svg" alt="The first call traces, compiles, builds guards, caches, and executes. Later calls check guards and reuse the matching compiled function.">
+  </picture>
+</figure>
 
 1. **Trace**: Dynamo intercepts the Python frame via PEP 523 and walks the bytecode. Tensor operations are recorded into an FX graph. Much of the surrounding Python logic is handled outside the graph: some values are evaluated concretely, some assumptions become _guards_, and unsupported regions can trigger _graph breaks_. We will see in detail what this means.
 
@@ -307,7 +339,12 @@ Graph:
   return sum_0
 ```
 
-![The same function before and after tracing. Function name, local variables, and Python operators dissolve into a pure data-flow DAG over tensor ops.](/assets/img/minidynamo/graph-ir.svg)
+<figure class="minidynamo-figure">
+  <picture>
+    <source media="(max-width: 700px)" srcset="/assets/img/minidynamo/graph-ir-mobile.svg">
+    <img src="/assets/img/minidynamo/graph-ir.svg" alt="Python source and its captured graph: x and y feed torch.add, then torch.mul with constant 2, then .sum(), then the output.">
+  </picture>
+</figure>
 
 Notice the `2` in `torch.mul(add_0, 2)` -- it's a plain Python integer, not a `Node`. Constants are inlined into the args of the operations that consume them.
 
@@ -418,7 +455,13 @@ def run(self):
 
 Trace `fn(x, y)`, where `fn` computes `z = x + y; w = z * 2; return w.sum()`. The first four instructions show bytecode, stack, and graph evolving in lockstep:
 
-![Tracing in motion: only the BINARY_ADD step actually touches the graph. Every other instruction is plumbing.](/assets/img/minidynamo/tracing.svg)
+<figure class="minidynamo-figure">
+  <picture>
+    <source media="(max-width: 700px)" srcset="/assets/img/minidynamo/tracing-mobile.svg">
+    <img src="/assets/img/minidynamo/tracing.svg" alt="Four bytecode instructions and their stack effects. Only BINARY_ADD adds a graph node: torch.add(x, y).">
+  </picture>
+  <figcaption>Stack entries are symbolic values, shown from bottom to top.</figcaption>
+</figure>
 
 The full trace, including the multiplication and the method call:
 
@@ -622,7 +665,12 @@ print(fn._cache[0][0].failing_guards(a3, b3))
 
 The mechanism is small: the first call pays the compile tax, identical calls pay guard checks, and the cache grows by one entry for each call that matches no existing guard set. (Section 9 walks one function through exactly this life cycle.) If a function sees a different shape on every call, every call misses and pays tracing and compilation overhead again. That is why **recompilation rate** is one of the first things to check when `torch.compile` does not speed up a workload.
 
-![One cache scan: the wrapper walks entries top-to-bottom and runs the first whose guards all pass. Entries further down never get checked on a hit.](/assets/img/minidynamo/cache-and-guards.svg)
+<figure class="minidynamo-figure">
+  <picture>
+    <source media="(max-width: 700px)" srcset="/assets/img/minidynamo/cache-and-guards-mobile.svg">
+    <img src="/assets/img/minidynamo/cache-and-guards.svg" alt="The first cache entry misses. The second matches and executes. The third is not checked.">
+  </picture>
+</figure>
 
 Real Dynamo makes the same trade-off, though symbolic shapes can accept some shape changes without a miss. Ignoring execution itself, the costs are:
 
@@ -826,7 +874,13 @@ A separate profiler pass, checked across two captured calls after warming up the
 
 Treat these as measurements of this repository's toy benchmark, not universal benchmark results. The raw JIT callable was fastest in both columns. The wrappers also have different costs and capabilities; subtracting raw and guarded timings does not isolate guard latency, because host checks can overlap earlier GPU work. The [benchmark script](https://github.com/itsdaniele/minidynamo/blob/main/examples/benchmark_publication.py) and [raw trials and profiler events](https://github.com/itsdaniele/minidynamo/blob/main/benchmarks/h200-publication.json) record the configuration and source hashes. Small-input trials showed host-side variation; the raw record includes every trial and its range. The same CUDA allocation passed 244 tests, with 4 MPS-only tests skipped.
 
-![Schematic cost categories, not measured timings or proportions. The H200 run launched 12 compute kernels eagerly and 2 with Inductor.](/assets/img/minidynamo/cost-decomposition.svg)
+<figure class="minidynamo-figure">
+  <picture>
+    <source media="(max-width: 700px)" srcset="/assets/img/minidynamo/cost-decomposition-mobile.svg">
+    <img src="/assets/img/minidynamo/cost-decomposition.svg" alt="The 2048 × 2048 H200 benchmark launches 12 compute kernels eagerly and 2 with Inductor.">
+  </picture>
+  <figcaption>Each box is one compute kernel; widths do not represent time.</figcaption>
+</figure>
 
 The raw Python backend's result is within noise; the guarded wrapper also adds overhead that is visible on the small input.
 

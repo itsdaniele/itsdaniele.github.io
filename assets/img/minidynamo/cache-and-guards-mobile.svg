@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 360 398"
+  role="img"
+  aria-labelledby="title description"
+  font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif"
+>
+  <title id="title">Use the first matching cache entry</title>
+  <desc id="description">
+    For incoming tensors of shape (5, 6), the first cache entry with shape guards for (3, 4) misses. The second entry matches and executes its
+    compiled function, provided its other guards pass. The third entry is not checked.
+  </desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L9,5 L0,10 z" fill="#4b5563" />
+    </marker>
+  </defs>
+  <rect width="360" height="398" rx="10" fill="#ffffff" />
+  <text x="18" y="32" font-size="22" fill="#1f2937" text-anchor="start" font-weight="600">Incoming shape: (5, 6)</text>
+  <text x="18" y="62" font-size="18" fill="#4b5563" text-anchor="start">Other guards must also pass.</text>
+  <rect x="18" y="86" width="324" height="90" rx="8" fill="#f8fafc" stroke="#cbd5e1" />
+  <text x="34" y="121" font-size="22" fill="#4b5563" text-anchor="start" font-weight="600">1</text>
+  <text x="72" y="121" font-size="20" fill="#1f2937" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    shape == (3, 4)
+  </text>
+  <text x="72" y="152" font-size="20" fill="#4b5563" text-anchor="start">Miss</text>
+  <rect x="18" y="190" width="324" height="90" rx="8" fill="#f0fdfa" stroke="#0f766e" />
+  <text x="34" y="225" font-size="22" fill="#0f766e" text-anchor="start" font-weight="600">2</text>
+  <text x="72" y="225" font-size="20" fill="#1f2937" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    shape == (5, 6)
+  </text>
+  <text x="72" y="256" font-size="20" fill="#0f766e" text-anchor="start" font-weight="600">Match → execute</text>
+  <rect x="18" y="294" width="324" height="90" rx="8" fill="#f8fafc" stroke="#cbd5e1" />
+  <text x="34" y="329" font-size="22" fill="#4b5563" text-anchor="start" font-weight="600">3</text>
+  <text x="72" y="329" font-size="20" fill="#1f2937" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    shape == (2, 2)
+  </text>
+  <text x="72" y="360" font-size="20" fill="#4b5563" text-anchor="start">Not checked</text>
+</svg>
