@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 360 460"
+  role="img"
+  aria-labelledby="title description"
+  font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif"
+>
+  <title id="title">The first four bytecode instructions</title>
+  <desc id="description">
+    Stack entries are symbolic values, shown bottom to top. LOAD_FAST pushes x then y. BINARY_ADD pops both, records torch.add(x, y), and pushes
+    add_0. STORE_FAST pops add_0 into local z. Only BINARY_ADD adds a graph node.
+  </desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L9,5 L0,10 z" fill="#4b5563" />
+    </marker>
+  </defs>
+  <rect width="360" height="460" rx="10" fill="#ffffff" />
+  <rect x="16" y="16" width="328" height="98" rx="8" fill="#f8fafc" stroke="#cbd5e1" />
+  <text
+    x="32"
+    y="44"
+    font-size="20"
+    fill="#1f2937"
+    text-anchor="start"
+    font-weight="600"
+    font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+  >
+    LOAD_FAST x
+  </text>
+  <text x="32" y="74" font-size="18" fill="#1f2937" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    Stack [x]
+  </text>
+  <rect x="16" y="126" width="328" height="98" rx="8" fill="#f8fafc" stroke="#cbd5e1" />
+  <text
+    x="32"
+    y="154"
+    font-size="20"
+    fill="#1f2937"
+    text-anchor="start"
+    font-weight="600"
+    font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+  >
+    LOAD_FAST y
+  </text>
+  <text x="32" y="184" font-size="18" fill="#1f2937" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    Stack [x, y]
+  </text>
+  <rect x="16" y="236" width="328" height="98" rx="8" fill="#fff7ed" stroke="#c2410c" />
+  <text
+    x="32"
+    y="264"
+    font-size="20"
+    fill="#c2410c"
+    text-anchor="start"
+    font-weight="600"
+    font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+  >
+    BINARY_ADD
+  </text>
+  <text x="32" y="294" font-size="18" fill="#1f2937" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    Stack [add_0]
+  </text>
+  <text x="32" y="320" font-size="18" fill="#c2410c" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    New: torch.add(x, y)
+  </text>
+  <rect x="16" y="346" width="328" height="98" rx="8" fill="#f8fafc" stroke="#cbd5e1" />
+  <text
+    x="32"
+    y="374"
+    font-size="20"
+    fill="#1f2937"
+    text-anchor="start"
+    font-weight="600"
+    font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+  >
+    STORE_FAST z
+  </text>
+  <text x="32" y="404" font-size="18" fill="#1f2937" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    Stack []
+  </text>
+</svg>
