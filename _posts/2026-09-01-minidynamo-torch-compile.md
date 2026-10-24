@@ -37,6 +37,13 @@ _styles: >
     margin: 2.5rem 0;
   }
 
+  #markdown-content .language-text pre,
+  #markdown-content .language-text code {
+    color: var(--global-text-color);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
   #markdown-content .minidynamo-figure picture {
     display: block;
   }
@@ -595,8 +602,8 @@ The top-level API ties together all five pipeline stages. Each decorated functio
 ```text
 on each call with inputs:
     validate inputs
-    for (guards, compiled_fn) in this function's cache:
-        if all guards pass for this call:
+    for (guards, compiled_fn) in cache:
+        if all guards pass:
             return compiled_fn(inputs)
 
     graph, guards = trace(fn, inputs)
